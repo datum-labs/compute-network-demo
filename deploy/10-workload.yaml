@@ -1,0 +1,67 @@
+# The demo workload, in simulate mode.
+#
+# One workload definition, one image, and a placement per city. Datum starts
+# Instances in each placement's location and attaches them all to the private
+# network from 00-network.yaml.
+#
+# Simulate mode needs no credentials and no API access, so this is the version
+# to start with. Every Instance serves the same self-contained page. Swap in
+# live/30-workload.yaml once the identity in live/ is in place.
+#
+# Before applying, choose:
+#   - The image tag. `main` moves with the default branch; pin a commit SHA or
+#     a release tag (for example :v1.0.0) for anything you intend to keep up.
+#   - Which placements to keep. Each one needs a city code that your project's
+#     locations actually offer; `kubectl get locations` lists them.
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: global-mesh
+  namespace: default
+spec:
+  placements:
+  - name: dallas
+    locationSelector:
+      matchLabels:
+        topology.datum.net/city-code: DFW
+    scaleSettings:
+      minReplicas: 1
+  - name: ashburn
+    locationSelector:
+      matchLabels:
+        topology.datum.net/city-code: IAD
+    scaleSettings:
+      minReplicas: 1
+  template:
+    spec:
+      networkInterfaces:
+      - name: eth0
+        ipFamilies: [IPv6]
+        network:
+          name: global-mesh
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          # The published image is public, so no pull secret is needed. If you
+          # publish your own build to a private registry, create a
+          # kubernetes.io/dockerconfigjson Secret and name it here.
+          # imagePullSecrets:
+          # - name: registry-pull
+          containers:
+          - name: mesh
+            image: ghcr.io/datum-labs/compute-network-demo:main
+            ports:
+            - name: http
+              port: 8080
+              protocol: TCP
+            env:
+            - name: DEMO_MODE
+              value: simulate
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+              seccompProfile:
+                type: RuntimeDefault

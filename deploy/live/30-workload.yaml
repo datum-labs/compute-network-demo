@@ -1,0 +1,86 @@
+# The demo workload in live mode. Apply this INSTEAD of ../10-workload.yaml,
+# once the identity and the Secret in this directory are in place.
+#
+# The difference from simulate mode is entirely in the environment: the Instance
+# discovers its real peers through the Datum Cloud API, and measures real
+# round-trip times to them over the private network, instead of modelling a
+# fleet. Everything the page draws comes from the same code path either way.
+#
+# Live mode needs the Instances to be able to reach the Datum Cloud API. Where
+# the private network has no route out to it, set MESH_PEERS below and the demo
+# will use that list instead.
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: global-mesh
+  namespace: default
+spec:
+  placements:
+  - name: dallas
+    locationSelector:
+      matchLabels:
+        topology.datum.net/city-code: DFW
+    scaleSettings:
+      minReplicas: 1
+  - name: ashburn
+    locationSelector:
+      matchLabels:
+        topology.datum.net/city-code: IAD
+    scaleSettings:
+      minReplicas: 1
+  template:
+    spec:
+      networkInterfaces:
+      - name: eth0
+        ipFamilies: [IPv6]
+        network:
+          name: global-mesh
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          containers:
+          - name: mesh
+            image: ghcr.io/datum-labs/compute-network-demo:main
+            ports:
+            - name: http
+              port: 8080
+              protocol: TCP
+            env:
+            - name: DATUM_PROJECT
+              value: <PROJECT>          # FILL IN
+            - name: DATUM_WORKLOAD
+              value: global-mesh
+            - name: DATUM_CREDENTIALS_FILE
+              value: /etc/datum/credentials.json
+            # FILL IN: the API and auth endpoints for the environment this
+            # project lives in.
+            - name: DATUM_API_URL
+              value: <DATUM-API-URL>
+            - name: DATUM_AUTH_URL
+              value: <DATUM-AUTH-URL>
+            # Fallback discovery, for a network with no route to the API. A
+            # comma-separated list of location=private-address pairs, used only
+            # when the API cannot be reached. Once the Instances have addresses:
+            #   kubectl get instances -l compute.datumapis.com/workload-name=global-mesh \
+            #     -o jsonpath='{range .items[*]}{.metadata.labels.compute\.datumapis\.com/location}={.status.networkInterfaces[0].addresses[0].address}{","}{end}'
+            # A /96 suffix on an address is accepted as-is. Leave empty to rely
+            # on the API alone.
+            - name: MESH_PEERS
+              value: ""
+            volumeAttachments:
+            - name: datum-credentials
+              mountPath: /etc/datum
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+              seccompProfile:
+                type: RuntimeDefault
+      volumes:
+      - name: datum-credentials
+        secret:
+          secretName: global-mesh-credentials
+          # The image runs as uid 65532, which must be able to read the key.
+          defaultMode: 0444

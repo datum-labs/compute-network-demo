@@ -1,0 +1,19 @@
+# The private network every Instance of the demo joins.
+#
+# Datum creates it when this is applied, and attaches each Instance to it as
+# that Instance starts. Nothing here opens a path to the public internet: the
+# only way into the fleet is the HTTPProxy in 20-ingress.yaml.
+#
+# IPv6-only with automatic address management. The MTU is 1440 because the
+# network is carried over an encapsulation; the demo keeps its messages to a
+# few hundred bytes, so it never comes close.
+apiVersion: networking.datumapis.com/v1alpha
+kind: Network
+metadata:
+  name: global-mesh
+  namespace: default
+spec:
+  ipFamilies: [IPv6]
+  ipam:
+    mode: Auto
+  mtu: 1440

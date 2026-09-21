@@ -1,0 +1,10 @@
+web/node_modules
+internal/site/dist/assets
+internal/site/dist/index.html
+internal/site/dist/world-map-dots.svg
+docs
+deploy
+global-mesh
+
+.git
+.github

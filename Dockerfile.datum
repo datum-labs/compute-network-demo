@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1
+
+# Unikernel-tier build, consumed by `datumctl compute build`, which packages the
+# final stage's filesystem into an EROFS rootfs and publishes it as a
+# kraftcloud/x86_64 OCI image.
+#
+# This differs from the general-purpose Dockerfile in two ways that the
+# unikernel packager cares about:
+#   - The final stage is scratch. The rootfs is held in guest RAM, so every
+#     unused file in the base image costs memory at boot.
+#   - WORKDIR is left at /. The packager emulates a non-root WORKDIR by wrapping
+#     the entrypoint in a shell, and a scratch image has no shell to wrap it
+#     with. The distroless :nonroot bases set WORKDIR /home/nonroot, which is
+#     why they cannot be packaged as-is.
+
+# Build the page. It is written into internal/site/dist for the Go embed.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS web
+WORKDIR /src/web
+COPY web/package.json web/package-lock.json web/.npmrc ./
+RUN npm ci --no-audit --no-fund
+COPY web/ ./
+COPY internal/site/dist/.keep /src/internal/site/dist/.keep
+RUN npm run build
+
+# Build one static binary with the page embedded. The binary is CGO-free and
+# statically linked, so it needs no loader or shared libraries at runtime.
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
+ARG TARGETOS
+ARG TARGETARCH
+WORKDIR /src
+COPY go.mod ./
+COPY main.go ./
+COPY internal/ ./internal/
+COPY --from=web /src/internal/site/dist/ ./internal/site/dist/
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath -ldflags="-s -w" -o /out/global-mesh .
+
+FROM scratch
+COPY --from=build /out/global-mesh /global-mesh
+EXPOSE 8080
+ENTRYPOINT ["/global-mesh"]

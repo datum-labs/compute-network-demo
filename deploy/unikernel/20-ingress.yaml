@@ -1,0 +1,35 @@
+# A separate entry point for the unikernel stack, so it can be opened alongside
+# the general-purpose one rather than replacing it.
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkService
+metadata:
+  name: global-mesh-unikernel
+  namespace: default
+spec:
+  networkInterfaces:
+    selector:
+      matchLabels:
+        compute.datumapis.com/workload-name: global-mesh-unikernel
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+  trafficDistribution:
+    strategy: Nearest
+---
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: global-mesh-unikernel
+  namespace: default
+spec:
+  rules:
+  - backends:
+    - networkService:
+        name: global-mesh-unikernel
+        port: http
+      weight: 1
+    matches:
+    - path:
+        type: PathPrefix
+        value: /

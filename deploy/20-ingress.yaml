@@ -1,0 +1,44 @@
+# The public entry point.
+#
+# NetworkService gathers every Instance of the workload behind one name, and
+# the Nearest strategy sends each visitor to the closest one. That is what the
+# page's "You are here" marker reports: two people in different places see the
+# same mesh drawn from different vantage points.
+#
+# HTTPProxy terminates TLS and publishes a hostname. That hostname is generated
+# when the HTTPProxy is created and is not stable across a delete and recreate,
+# so edit this object in place rather than replacing it:
+#   kubectl get httpproxy global-mesh -o jsonpath='{.status.hostnames[0]}'
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkService
+metadata:
+  name: global-mesh
+  namespace: default
+spec:
+  networkInterfaces:
+    selector:
+      matchLabels:
+        compute.datumapis.com/workload-name: global-mesh
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+  trafficDistribution:
+    strategy: Nearest
+---
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: global-mesh
+  namespace: default
+spec:
+  rules:
+  - backends:
+    - networkService:
+        name: global-mesh
+        port: http
+      weight: 1
+    matches:
+    - path:
+        type: PathPrefix
+        value: /

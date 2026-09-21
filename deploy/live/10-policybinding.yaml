@@ -1,0 +1,43 @@
+# Permission for the identity above to read the compute resources it discovers.
+#
+# A PolicyBinding is evaluated by the owning ORGANIZATION's control plane. If it
+# is applied to a project control plane it is accepted and then never
+# reconciled, which looks like a permissions bug much later. Apply it to the
+# organization:
+#   datumctl auth update-kubeconfig --kubeconfig ./org.kubeconfig --organization <ORG>
+#   kubectl --kubeconfig ./org.kubeconfig apply -f live/10-policybinding.yaml
+#
+# Then wait for it to go Ready:
+#   kubectl --kubeconfig ./org.kubeconfig get policybinding global-mesh-compute-viewer \
+#     -n organization-<ORG> \
+#     -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+#
+# Both UIDs are required by the schema and both are assigned by the platform:
+#   kubectl --kubeconfig ./project.kubeconfig \
+#     get serviceaccounts.iam.miloapis.com global-mesh -o jsonpath='{.metadata.uid}'
+#   kubectl --kubeconfig ./org.kubeconfig \
+#     get projects.resourcemanager.miloapis.com <PROJECT> -o jsonpath='{.metadata.uid}'
+#
+# Reading the Locations API uses a separate platform-level grant. Without it the
+# demo falls back to its built-in table of city names and coordinates, which
+# covers every launch location, so this binding is the only one required.
+apiVersion: iam.miloapis.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: global-mesh-compute-viewer
+  # FILL IN: <ORG> is your organization's name.
+  namespace: organization-<ORG>
+spec:
+  roleRef:
+    name: compute.datumapis.com-viewer
+    namespace: datum-cloud
+  subjects:
+    - kind: ServiceAccount
+      name: global-mesh
+      uid: <SERVICE-ACCOUNT-UID>   # FILL IN
+  resourceSelector:
+    resourceRef:
+      apiGroup: resourcemanager.miloapis.com
+      kind: Project
+      name: <PROJECT>              # FILL IN
+      uid: <PROJECT-UID>           # FILL IN

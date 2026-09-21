@@ -1,0 +1,5 @@
+web/node_modules/
+internal/site/dist/*
+# .keep is force-added so go:embed always has a match, even before a web build.
+!internal/site/dist/.keep
+/global-mesh

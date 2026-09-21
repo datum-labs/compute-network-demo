@@ -1,0 +1,497 @@
+{
+  "apiVersion": "compute.datumapis.com/v1alpha",
+  "kind": "InstanceList",
+  "metadata": {
+    "resourceVersion": "1624244321"
+  },
+  "items": [
+    {
+      "apiVersion": "compute.datumapis.com/v1alpha",
+      "kind": "Instance",
+      "metadata": {
+        "creationTimestamp": "2026-09-12T20:43:05Z",
+        "generation": 50,
+        "labels": {
+          "compute.datumapis.com/instance-index": "0",
+          "compute.datumapis.com/location": "us-central-1",
+          "compute.datumapis.com/placement-name": "default",
+          "compute.datumapis.com/workload-deployment-name": "gp-http-proof-default-us-central-1",
+          "compute.datumapis.com/workload-deployment-uid": "bcc3311f-a621-469d-a186-fadeb0b97a77",
+          "compute.datumapis.com/workload-name": "gp-http-proof",
+          "compute.datumapis.com/workload-uid": "1390b8e2-9867-429b-a656-3f9a5d70ab23",
+          "meta.datumapis.com/upstream-cluster-name": "cluster-datum-cloud",
+          "meta.datumapis.com/upstream-namespace": "default"
+        },
+        "name": "gp-http-proof-default-us-central-1-0",
+        "namespace": "default",
+        "ownerReferences": [
+          {
+            "apiVersion": "compute.datumapis.com/v1alpha",
+            "kind": "WorkloadDeployment",
+            "name": "gp-http-proof-default-us-central-1",
+            "uid": "4ec21c90-8338-4c30-90d5-5ddc4600e8dc"
+          }
+        ],
+        "resourceVersion": "1624244321",
+        "uid": "1704aacf-9870-44d4-8b10-6ce930b8c11c"
+      },
+      "spec": {
+        "controller": {
+          "templateHash": "5b94f4c687"
+        },
+        "location": {
+          "name": "us-central-1"
+        },
+        "networkInterfaces": [
+          {
+            "ipFamilies": [
+              "IPv6"
+            ],
+            "name": "eth0",
+            "network": {
+              "name": "default"
+            },
+            "reclaimPolicy": "Delete"
+          }
+        ],
+        "runtime": {
+          "class": "general-purpose",
+          "resources": {
+            "instanceType": "datumcloud/d1-standard-2"
+          },
+          "sandbox": {
+            "containers": [
+              {
+                "command": [
+                  "python3",
+                  "-u",
+                  "-c",
+                  "import base64,zlib;exec(compile(zlib.decompress(base64.b64de...(trimmed)"
+                ],
+                "image": "index.docker.io/library/python:3.12-alpine",
+                "name": "app",
+                "ports": [
+                  {
+                    "name": "http",
+                    "port": 8080,
+                    "protocol": "TCP"
+                  }
+                ],
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "add": [
+                      "CHOWN",
+                      "DAC_OVERRIDE",
+                      "FOWNER",
+                      "FSETID",
+                      "KILL",
+                      "NET_BIND_SERVICE",
+                      "SETFCAP",
+                      "SETGID",
+                      "SETPCAP",
+                      "SETUID"
+                    ],
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "seccompProfile": {
+                    "type": "RuntimeDefault"
+                  }
+                }
+              }
+            ],
+            "imagePullSecrets": [
+              {
+                "name": "registry-pull"
+              }
+            ]
+          }
+        }
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-09-16T17:47:25Z",
+            "message": "Instance is available",
+            "observedGeneration": 3,
+            "reason": "Programmed",
+            "status": "True",
+            "type": "Programmed"
+          },
+          {
+            "lastTransitionTime": "2026-09-16T17:47:25Z",
+            "message": "Instance is available",
+            "observedGeneration": 3,
+            "reason": "Available",
+            "status": "True",
+            "type": "Available"
+          },
+          {
+            "lastTransitionTime": "1970-01-01T00:00:00Z",
+            "message": "Instance is ready",
+            "reason": "Available",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastTransitionTime": "2026-09-16T17:47:21Z",
+            "message": "All 3 resource requests have been granted",
+            "observedGeneration": 3,
+            "reason": "QuotaAvailable",
+            "status": "True",
+            "type": "QuotaGranted"
+          }
+        ],
+        "controller": {
+          "observedTemplateHash": "5b94f4c687"
+        },
+        "networkInterfaces": [
+          {
+            "addresses": [
+              {
+                "address": "fd20:0:f::1:0:0/96",
+                "family": "IPv6",
+                "gateway": "fd20:0:f::1",
+                "primary": true
+              }
+            ],
+            "assignments": {
+              "networkIP": "fd20:0:f::1:0:0/96"
+            },
+            "conditions": [
+              {
+                "lastTransitionTime": "2026-09-16T17:47:21Z",
+                "message": "Every requested address is held",
+                "reason": "Allocated",
+                "status": "True",
+                "type": "Allocated"
+              },
+              {
+                "lastTransitionTime": "2026-09-16T17:47:22Z",
+                "message": "VPCAttachment gp-http-proof-default-us-central-1-0-eth0 and its attachment definition exist",
+                "reason": "AttachmentReady",
+                "status": "True",
+                "type": "Prepared"
+              },
+              {
+                "lastTransitionTime": "1970-01-01T00:00:00Z",
+                "message": "Waiting for controller",
+                "reason": "Pending",
+                "status": "Unknown",
+                "type": "Programmed"
+              }
+            ],
+            "name": "eth0",
+            "networkInterfaceRef": {
+              "name": "gp-http-proof-default-us-central-1-0-eth0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "compute.datumapis.com/v1alpha",
+      "kind": "Instance",
+      "metadata": {
+        "creationTimestamp": "2026-09-10T15:09:08Z",
+        "generation": 29,
+        "labels": {
+          "compute.datumapis.com/instance-index": "0",
+          "compute.datumapis.com/location": "us-central-1",
+          "compute.datumapis.com/placement-name": "dfw",
+          "compute.datumapis.com/workload-deployment-name": "xcheck-dfw-us-central-1",
+          "compute.datumapis.com/workload-deployment-uid": "b900e5f0-641a-4be3-a843-a8cfd608396a",
+          "compute.datumapis.com/workload-name": "xcheck",
+          "compute.datumapis.com/workload-uid": "9b37722b-7690-4842-938b-09538f5db970",
+          "meta.datumapis.com/upstream-cluster-name": "cluster-datum-cloud",
+          "meta.datumapis.com/upstream-namespace": "default"
+        },
+        "name": "xcheck-dfw-us-central-1-0",
+        "namespace": "default",
+        "ownerReferences": [
+          {
+            "apiVersion": "compute.datumapis.com/v1alpha",
+            "kind": "WorkloadDeployment",
+            "name": "xcheck-dfw-us-central-1",
+            "uid": "20b3b7a4-dafa-4960-acfa-5bcae06cb6be"
+          }
+        ],
+        "resourceVersion": "1630532670",
+        "uid": "9129e121-aa4c-4e3f-9fc9-b129933411c1"
+      },
+      "spec": {
+        "controller": {
+          "templateHash": "6698d8959f"
+        },
+        "location": {
+          "name": "us-central-1"
+        },
+        "networkInterfaces": [
+          {
+            "ipFamilies": [
+              "IPv6"
+            ],
+            "name": "eth0",
+            "network": {
+              "name": "taptest"
+            },
+            "reclaimPolicy": "Delete"
+          }
+        ],
+        "runtime": {
+          "class": "unikernel",
+          "resources": {
+            "instanceType": "datumcloud/d1-standard-2"
+          },
+          "sandbox": {
+            "containers": [
+              {
+                "image": "ghcr.io/datum-labs/compute-network-demo@sha256:48bb65ab466f459382e856eb763a7a89eb45b284e4fe64a8ec0d3b4f2395987c",
+                "name": "hello"
+              }
+            ],
+            "imagePullSecrets": [
+              {
+                "name": "registry-pull"
+              }
+            ]
+          }
+        }
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-09-17T14:36:46Z",
+            "message": "Instance is available",
+            "observedGeneration": 4,
+            "reason": "Programmed",
+            "status": "True",
+            "type": "Programmed"
+          },
+          {
+            "lastTransitionTime": "2026-09-17T14:36:46Z",
+            "message": "Instance is available",
+            "observedGeneration": 4,
+            "reason": "Available",
+            "status": "True",
+            "type": "Available"
+          },
+          {
+            "lastTransitionTime": "1970-01-01T00:00:00Z",
+            "message": "Instance is ready",
+            "reason": "Available",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastTransitionTime": "2026-09-16T19:01:05Z",
+            "message": "All 3 resource requests have been granted",
+            "observedGeneration": 4,
+            "reason": "QuotaAvailable",
+            "status": "True",
+            "type": "QuotaGranted"
+          }
+        ],
+        "controller": {
+          "observedTemplateHash": "6698d8959f"
+        },
+        "networkInterfaces": [
+          {
+            "addresses": [
+              {
+                "address": "fd20:0:2::3:0:0/96",
+                "family": "IPv6",
+                "gateway": "fd20:0:2::1",
+                "primary": true
+              }
+            ],
+            "assignments": {
+              "networkIP": "fd20:0:2::3:0:0/96"
+            },
+            "conditions": [
+              {
+                "lastTransitionTime": "2026-09-16T19:01:08Z",
+                "message": "Every requested address is held",
+                "reason": "Allocated",
+                "status": "True",
+                "type": "Allocated"
+              },
+              {
+                "lastTransitionTime": "2026-09-16T19:01:09Z",
+                "message": "VPCAttachment xcheck-dfw-us-central-1-0-eth0 and its attachment definition exist",
+                "reason": "AttachmentReady",
+                "status": "True",
+                "type": "Prepared"
+              },
+              {
+                "lastTransitionTime": "1970-01-01T00:00:00Z",
+                "message": "Waiting for controller",
+                "reason": "Pending",
+                "status": "Unknown",
+                "type": "Programmed"
+              }
+            ],
+            "name": "eth0",
+            "networkInterfaceRef": {
+              "name": "xcheck-dfw-us-central-1-0-eth0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "compute.datumapis.com/v1alpha",
+      "kind": "Instance",
+      "metadata": {
+        "creationTimestamp": "2026-09-10T14:49:05Z",
+        "finalizers": [
+          "compute.datumapis.com/infra-provider-gcp"
+        ],
+        "generation": 2,
+        "labels": {
+          "compute.datumapis.com/instance-index": "0",
+          "compute.datumapis.com/location": "us-east-1",
+          "compute.datumapis.com/placement-name": "iad",
+          "compute.datumapis.com/workload-deployment-name": "xcheck-iad-us-east-1",
+          "compute.datumapis.com/workload-deployment-uid": "9cb388d8-30b7-4ed0-a0c7-ffb6dea33bff",
+          "compute.datumapis.com/workload-name": "xcheck",
+          "compute.datumapis.com/workload-uid": "9b37722b-7690-4842-938b-09538f5db970",
+          "meta.datumapis.com/upstream-cluster-name": "cluster-datum-cloud",
+          "meta.datumapis.com/upstream-namespace": "default"
+        },
+        "name": "xcheck-iad-us-east-1-0",
+        "namespace": "default",
+        "ownerReferences": [
+          {
+            "apiVersion": "compute.datumapis.com/v1alpha",
+            "kind": "WorkloadDeployment",
+            "name": "xcheck-iad-us-east-1",
+            "uid": "f6897df7-4211-43ed-b475-6b91b8ba2d0b"
+          }
+        ],
+        "resourceVersion": "1624952839",
+        "uid": "ff59a076-0ed9-4a9a-88e1-824d9e7547cc"
+      },
+      "spec": {
+        "controller": {
+          "templateHash": "5796497695"
+        },
+        "location": {
+          "name": "us-east-1"
+        },
+        "networkInterfaces": [
+          {
+            "ipFamilies": [
+              "IPv6"
+            ],
+            "name": "eth0",
+            "network": {
+              "name": "taptest"
+            },
+            "reclaimPolicy": "Delete"
+          }
+        ],
+        "runtime": {
+          "resources": {
+            "instanceType": "datumcloud/d1-standard-2"
+          },
+          "sandbox": {
+            "containers": [
+              {
+                "image": "ghcr.io/datum-labs/compute-network-demo@sha256:48bb65ab466f459382e856eb763a7a89eb45b284e4fe64a8ec0d3b4f2395987c",
+                "name": "hello"
+              }
+            ],
+            "imagePullSecrets": [
+              {
+                "name": "registry-pull"
+              }
+            ]
+          }
+        }
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-09-16T20:12:35Z",
+            "message": "Instance is provisioning",
+            "observedGeneration": 3,
+            "reason": "ProgrammingInProgress",
+            "status": "Unknown",
+            "type": "Programmed"
+          },
+          {
+            "lastTransitionTime": "2026-09-16T20:12:35Z",
+            "message": "Instance is provisioning",
+            "observedGeneration": 3,
+            "reason": "Provisioning",
+            "status": "Unknown",
+            "type": "Available"
+          },
+          {
+            "lastTransitionTime": "1970-01-01T00:00:00Z",
+            "message": "Instance is provisioning",
+            "reason": "Provisioning",
+            "status": "Unknown",
+            "type": "Ready"
+          },
+          {
+            "lastTransitionTime": "2026-09-10T14:49:06Z",
+            "message": "All 3 resource requests have been granted",
+            "observedGeneration": 3,
+            "reason": "QuotaAvailable",
+            "status": "True",
+            "type": "QuotaGranted"
+          }
+        ],
+        "controller": {
+          "observedTemplateHash": "5796497695"
+        },
+        "networkInterfaces": [
+          {
+            "addresses": [
+              {
+                "address": "fd20:0:2:1:0:2::/96",
+                "family": "IPv6",
+                "gateway": "fd20:0:2:1::1",
+                "primary": true
+              }
+            ],
+            "assignments": {
+              "networkIP": "fd20:0:2:1:0:2::/96"
+            },
+            "conditions": [
+              {
+                "lastTransitionTime": "2026-09-10T14:49:04Z",
+                "message": "Every requested address is held",
+                "reason": "Allocated",
+                "status": "True",
+                "type": "Allocated"
+              },
+              {
+                "lastTransitionTime": "2026-09-10T14:49:04Z",
+                "message": "VPCAttachment xcheck-iad-us-east-1-0-eth0 and its attachment definition exist",
+                "reason": "AttachmentReady",
+                "status": "True",
+                "type": "Prepared"
+              },
+              {
+                "lastTransitionTime": "1970-01-01T00:00:00Z",
+                "message": "Waiting for controller",
+                "reason": "Pending",
+                "status": "Unknown",
+                "type": "Programmed"
+              }
+            ],
+            "name": "eth0",
+            "networkInterfaceRef": {
+              "name": "xcheck-iad-us-east-1-0-eth0"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

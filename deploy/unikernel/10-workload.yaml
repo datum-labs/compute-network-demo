@@ -1,0 +1,53 @@
+# The same demo on the unikernel runtime class, as a second, independent stack.
+#
+# It exists so the two runtime classes can be shown side by side: the page is
+# identical, and the difference is only in how the Instance boots. Give it its
+# own name so it does not disturb the general-purpose stack, and its own
+# ingress (20-ingress.yaml in this directory) so it gets its own hostname.
+#
+# The image is NOT the one from ghcr.io/datum-labs/compute-network-demo. The
+# unikernel class does not select ordinary container images; it needs an OCI
+# image whose platform is kraftcloud/x86_64 and whose layer carries an EROFS
+# root filesystem. Build one yourself from Dockerfile.datum — see "Run it on
+# the unikernel tier" in the repository README — and put its reference here.
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: global-mesh-unikernel
+  namespace: default
+spec:
+  placements:
+  - name: dallas
+    locationSelector:
+      matchLabels:
+        topology.datum.net/city-code: DFW
+    scaleSettings:
+      minReplicas: 1
+  template:
+    spec:
+      networkInterfaces:
+      - name: eth0
+        ipFamilies: [IPv6]
+        network:
+          name: global-mesh
+      runtime:
+        class: unikernel
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          # imagePullSecrets:
+          # - name: registry-pull
+          containers:
+          - name: mesh
+            # FILL IN: a unikernel image you built and pushed yourself.
+            image: <REGISTRY>/<NAMESPACE>/compute-network-demo-unikernel:<TAG>
+            ports:
+            - name: http
+              port: 8080
+              protocol: TCP
+            env:
+            - name: DEMO_MODE
+              value: simulate
+            securityContext:
+              capabilities:
+                drop: [ALL]
