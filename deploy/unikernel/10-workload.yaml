@@ -8,8 +8,8 @@
 # The image is NOT the one from ghcr.io/datum-labs/compute-network-demo. The
 # unikernel class does not select ordinary container images; it needs an OCI
 # image whose platform is kraftcloud/x86_64 and whose layer carries an EROFS
-# root filesystem. Build one yourself from Dockerfile.datum — see "Run it on
-# the unikernel tier" in the repository README — and put its reference here.
+# root filesystem. Build one yourself from Dockerfile.datum — see
+# docs/publishing.md in this repository — and put its reference here.
 apiVersion: compute.datumapis.com/v1alpha
 kind: Workload
 metadata:

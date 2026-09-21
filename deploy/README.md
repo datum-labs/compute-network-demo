@@ -51,7 +51,7 @@ Before you apply `10-workload.yaml`, decide two things:
   placements you cannot fill; adding one is how you grow the mesh later.
 - **Which image tag.** `:main` follows the default branch and will change under
   you. For anything you plan to leave running, pin a release tag or a commit
-  SHA. See "Publishing the image" in the repository README.
+  SHA. See [docs/publishing.md](../docs/publishing.md).
 
 The published image is public, so no image pull secret is needed. The
 commented-out `imagePullSecrets` stanza is there for the case where you publish
@@ -96,8 +96,8 @@ fallback, so it is never silently fibbing about where its view came from.
 `unikernel/` is an optional second stack that runs the same demo on the
 `unikernel` runtime class, with its own workload name and its own hostname, so
 the two can be opened side by side. It needs an image built specially — see
-"Run it on the unikernel tier" in the repository README — and it shares the
-network from `00-network.yaml`.
+[docs/publishing.md](../docs/publishing.md) — and it shares the network from
+`00-network.yaml`.
 
 ## Changing it afterwards
 
