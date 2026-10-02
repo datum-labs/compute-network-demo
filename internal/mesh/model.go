@@ -100,12 +100,11 @@ type EdgeView struct {
 
 // Totals are the headline numbers.
 type Totals struct {
-	Regions             int     `json:"regions"`
-	Instances           int     `json:"instances"`
-	Messages            int64   `json:"messages"`
-	Bytes               int64   `json:"bytes"`
-	AvgRTTMs            float64 `json:"avgRttMs"`
-	PublicInternetBytes int64   `json:"publicInternetBytes"`
+	Regions   int     `json:"regions"`
+	Instances int     `json:"instances"`
+	Messages  int64   `json:"messages"`
+	Bytes     int64   `json:"bytes"`
+	AvgRTTMs  float64 `json:"avgRttMs"`
 }
 
 // View is the response of /api/mesh.

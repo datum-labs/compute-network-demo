@@ -8,7 +8,6 @@ import {
   type StoryShot,
   type StoryTarget,
   cityList,
-  count,
   farthestLink,
   farthestPeer,
   headline,
@@ -64,7 +63,7 @@ export const CHAPTERS: Chapter[] = [
   },
   {
     id: 'private-network',
-    card: ({ links, view }) => {
+    card: ({ links }) => {
       const far = farthestLink(links);
       const pair = far
         ? `${far.a.city} reaches ${far.b.city} in ${formatMs(far.rttMs)}`
@@ -72,8 +71,8 @@ export const CHAPTERS: Chapter[] = [
       return {
         title: 'Reach every region privately',
         // The arcs are the measurement, so the sentence names the one the map
-        // is lighting up and the bytes figure the panel is counting.
-        body: `${pair}, and the fleet has sent ${count(view?.totals.publicInternetBytes ?? 0)} bytes over the public internet. Datum set that private network up when the workload deployed.`,
+        // is lighting up.
+        body: `${pair}. The fleet talks over an isolated network of its own, which Datum set up when the workload deployed, and every Instance on it is reachable only by the rest of the fleet.`,
       };
     },
     shot: () => ({ at: 'fleet' }),

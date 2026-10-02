@@ -35,7 +35,7 @@ export type StoryTarget =
   | { at: 'fleet' }
   | { at: 'location'; location: string }
   /** Something outside the map, found by its data-tour name. */
-  | { at: 'panel'; name: 'activity' | 'public-internet' };
+  | { at: 'panel'; name: 'activity' | 'private-links' };
 
 /** One card: a heading and a sentence or two, as a product tour reads. */
 export interface Card {

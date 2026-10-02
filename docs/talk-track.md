@@ -22,10 +22,11 @@ is the one to say out loud.
 > *(Point at the feed.)* This is that traffic as it happens — and the top line
 > is us: our request, served from Dallas. Watch the map when a line appears.
 >
-> *(Point at "0 bytes".)* None of it touches the public internet. There are no
-> VPNs, no public IP addresses, and no firewall rules to manage. Every instance
-> joined a private network the moment it started, and each one finds its peers
-> through the Datum Cloud API.
+> *(Point at "Private links".)* Every one of those links runs on an isolated
+> network of the workload's own. There are no VPNs to build, no public addresses on the
+> Instances, and no firewall rules to manage — each Instance is reachable only
+> by the rest of the fleet. Every Instance joined that network the moment it
+> started, and each one finds its peers through the Datum Cloud API.
 >
 > *(Point at the activity feed.)* Nobody is driving this. Demand moves, and each
 > location scales on its own — watch San Jose go to four while Dallas comes back

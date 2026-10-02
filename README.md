@@ -1,7 +1,7 @@
 # Global Mesh
 
 One application, deployed once, running in three cities and talking to itself
-over a private network. This is a product-experience demo of
+over an isolated network of its own. This is a product-experience demo of
 [Datum Cloud](https://datum.net), built for people seeing it for the first
 time.
 
@@ -11,9 +11,10 @@ Each glowing pin is a city where the application runs, badged with how many
 Instances are there. The arcs are real messages travelling between those
 Instances, labelled with the round trip that was just measured. Zoom into a
 city and it opens up into its individual Instances. The fleet scales itself
-while you watch, and the page narrates what it is doing — and none of that
-traffic touches the public internet, which is the "0 bytes" tile and the point
-of the whole thing.
+while you watch, and the page narrates what it is doing — and all of that
+traffic runs on an isolated network of the workload's own, where the Instances
+are reachable only by each other and never publicly exposed. That is the
+"Private links" tile, and the point of the whole thing.
 
 The repository is called `compute-network-demo`. The demo is called Global
 Mesh, which is the name on the page.
@@ -36,7 +37,7 @@ To build it yourself, or to change anything, see
 ## Deploy it to a Datum project
 
 [`deploy/`](deploy/) has everything needed to stand this up in a project of
-your own — the private network, the workload, the public entry point, and the
+your own — the isolated network, the workload, the public entry point, and the
 identity that live mode needs. [`deploy/README.md`](deploy/README.md) walks
 through it in order. Simulate mode is three files and needs no credentials at
 all.

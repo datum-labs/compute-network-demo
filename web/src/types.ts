@@ -83,7 +83,6 @@ export interface MeshView {
     messages: number;
     bytes: number;
     avgRttMs: number;
-    publicInternetBytes: number;
   };
   notice?: string;
 }

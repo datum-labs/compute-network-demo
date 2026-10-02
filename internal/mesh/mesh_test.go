@@ -109,9 +109,6 @@ func TestAssemble(t *testing.T) {
 	if avg := v.Totals.AvgRTTMs; avg < 10.99 || avg > 11.01 {
 		t.Errorf("avg rtt = %v, want 11 (down edges excluded)", avg)
 	}
-	if v.Totals.PublicInternetBytes != 0 {
-		t.Error("public internet bytes must be zero")
-	}
 
 	byName := map[string]InstanceView{}
 	for _, iv := range v.Instances {
