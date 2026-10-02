@@ -29,6 +29,12 @@ type WorkloadWriter interface {
 // placement that already exists is not currently acted on, while a new
 // placement is picked up within seconds.
 //
+// A replica that has just taken the fleet has no change of its own to space
+// from, so leadership itself starts the interval: the first change comes one
+// full Interval after this replica started leading, not within seconds of a
+// rollout. Because leadership is only ever observed on a tick, that moment is
+// always at or after the process started.
+//
 // Every replica runs this code, so one of them has to be chosen. The choice is
 // made from what discovery already reports — the oldest running Instance drives
 // — and is re-made on every tick. Two replicas briefly agreeing they
@@ -40,8 +46,9 @@ type Driver struct {
 	// MaxPerCity caps a city's Instances. The floor is always one, since a
 	// city that empties stops being part of the mesh the page is about.
 	MaxPerCity int
-	// Interval is the shortest gap between two changes. The demo is watched,
-	// not benchmarked, so it moves slowly enough to read.
+	// Interval is the shortest gap between two changes, and between taking the
+	// fleet and the first change. The demo is watched, not benchmarked, so it
+	// moves slowly enough to read.
 	Interval time.Duration
 	// SettleTimeout is how long a scale-up has to produce a reachable
 	// Instance before the driver takes the placement back out.
@@ -53,10 +60,13 @@ type Driver struct {
 	// while an API call is in flight is dropped, not stacked behind it.
 	ticking sync.Mutex
 
-	mu           sync.Mutex
-	leader       bool
-	step         int
-	lastAction   string
+	mu         sync.Mutex
+	leader     bool
+	step       int
+	lastAction string
+	// lastActionAt is what the interval is measured from. Taking the fleet
+	// seeds it, so it is set for as long as this replica leads and a lost race
+	// leaves it alone.
 	lastActionAt time.Time
 	backoffUntil time.Time
 	cities       []city
@@ -124,6 +134,12 @@ func (d *Driver) Tick(ctx context.Context, v View) {
 	d.mu.Lock()
 	was := d.leader
 	d.leader = lead
+	if lead && !was {
+		// Measure the interval from the handover: a replica that has just taken
+		// the fleet, whether at startup or from another replica, has no change
+		// of its own to space from.
+		d.lastActionAt = now
+	}
 	pending := d.pending
 	backoff := d.backoffUntil
 	lastAt := d.lastActionAt
@@ -147,7 +163,7 @@ func (d *Driver) Tick(ctx context.Context, v View) {
 	if now.Before(backoff) {
 		return
 	}
-	if !lastAt.IsZero() && now.Sub(lastAt) < d.Interval {
+	if now.Sub(lastAt) < d.Interval {
 		return
 	}
 	if !stable {

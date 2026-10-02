@@ -236,7 +236,9 @@ func TestScaleUpDoesNotMoveLeadership(t *testing.T) {
 		dfwInstance: now.Add(-24 * time.Hour),
 		iadInstance: now.Add(-time.Hour),
 	}
-	d.Tick(context.Background(), aged(stableView(dfwInstance, dfwInstance, iadInstance), ages))
+	leading := aged(stableView(dfwInstance, dfwInstance, iadInstance), ages)
+	takeTheFleet(t, d, &now, leading)
+	d.Tick(context.Background(), leading)
 	if len(api.writes) != 1 || api.writes[0][2].Name != "dfw-2" {
 		t.Fatalf("writes = %+v", api.writes)
 	}
@@ -489,12 +491,26 @@ func newTestDriver(t *testing.T, api *fakeWorkloads, now *time.Time) *Driver {
 	}
 }
 
+// takeTheFleet runs the tick on which this replica becomes the leader and then
+// moves the clock past the interval, since the driver spaces its first change
+// from the handover rather than acting the moment it takes over.
+func takeTheFleet(t *testing.T, d *Driver, now *time.Time, v View) {
+	t.Helper()
+	d.Tick(context.Background(), v)
+	if !d.State().IsLeader {
+		t.Fatalf("the replica did not take the fleet")
+	}
+	*now = now.Add(d.Interval)
+}
+
 func TestDriverScalesUpWhenLeading(t *testing.T) {
 	api := &fakeWorkloads{workload: twoCityWorkload()}
 	now := time.Date(2026, 10, 2, 12, 0, 0, 0, time.UTC)
 	d := newTestDriver(t, api, &now)
 
-	d.Tick(context.Background(), stableView("mesh-a", "mesh-a", "mesh-b"))
+	v := stableView("mesh-a", "mesh-a", "mesh-b")
+	takeTheFleet(t, d, &now, v)
+	d.Tick(context.Background(), v)
 	if len(api.writes) != 1 {
 		t.Fatalf("got %d writes, want 1", len(api.writes))
 	}
@@ -509,7 +525,7 @@ func TestDriverScalesUpWhenLeading(t *testing.T) {
 	// The fleet has not grown yet, so nothing else happens however long we
 	// wait: one change at a time.
 	now = now.Add(5 * time.Minute)
-	d.Tick(context.Background(), stableView("mesh-a", "mesh-a", "mesh-b"))
+	d.Tick(context.Background(), v)
 	if len(api.writes) != 1 {
 		t.Fatalf("acted again while the last change was still settling: %d writes", len(api.writes))
 	}
@@ -553,6 +569,7 @@ func TestDriverHoldsItsInterval(t *testing.T) {
 	now := time.Now()
 	d := newTestDriver(t, api, &now)
 
+	takeTheFleet(t, d, &now, stableView("mesh-a", "mesh-a", "mesh-b"))
 	d.Tick(context.Background(), stableView("mesh-a", "mesh-a", "mesh-b"))
 	if len(api.writes) != 1 {
 		t.Fatalf("got %d writes", len(api.writes))
@@ -577,12 +594,80 @@ func TestDriverHoldsItsInterval(t *testing.T) {
 	}
 }
 
+// The bug this guards: a driver with no change of its own to space from treated
+// the interval as already elapsed, so a rollout's new leader could scale the
+// fleet about a minute after every Instance had restarted. Observed in staging
+// as a roll at 16:56:46 followed by a scale-up at 16:58:01.
+func TestDriverWaitsAnIntervalAfterTakingTheFleet(t *testing.T) {
+	start := time.Date(2026, 10, 2, 16, 56, 46, 0, time.UTC)
+	const interval = 4 * time.Minute
+
+	// Dallas is the older Instance, so it drives until it leaves the fleet.
+	ages := map[string]time.Time{
+		dfwInstance: start.Add(-24 * time.Hour),
+		iadInstance: start.Add(-time.Hour),
+	}
+	// tick is one discovery tick: when it happens, measured from process start,
+	// what the replica sees, and how many writes it should have made by then.
+	type tick struct {
+		at         time.Duration
+		view       View
+		wantWrites int
+	}
+	// Each case's views name the replica they belong to, so a tick can hand the
+	// fleet from one replica to another.
+	cases := []struct {
+		name  string
+		ticks []tick
+	}{
+		{
+			name: "a fresh leader holds a stable fleet still for a full interval",
+			ticks: []tick{
+				{at: 0, view: aged(stableView(dfwInstance, dfwInstance, iadInstance), ages)},
+				{at: 75 * time.Second, view: aged(stableView(dfwInstance, dfwInstance, iadInstance), ages)},
+				{at: interval - time.Second, view: aged(stableView(dfwInstance, dfwInstance, iadInstance), ages)},
+				{at: interval, view: aged(stableView(dfwInstance, dfwInstance, iadInstance), ages), wantWrites: 1},
+			},
+		},
+		{
+			name: "a replica that takes over later waits a full interval from the handover",
+			ticks: []tick{
+				// Dallas is driving, so this replica only watches, however long
+				// its own process has been up.
+				{at: 0, view: aged(stableView(iadInstance, dfwInstance, iadInstance), ages)},
+				{at: 10 * time.Minute, view: aged(stableView(iadInstance, dfwInstance, iadInstance), ages)},
+				// Dallas is gone: the handover, not process start, is what the
+				// interval runs from.
+				{at: 11 * time.Minute, view: aged(stableView(iadInstance, iadInstance), ages)},
+				{at: 11*time.Minute + interval - time.Second, view: aged(stableView(iadInstance, iadInstance), ages)},
+				{at: 11*time.Minute + interval, view: aged(stableView(iadInstance, iadInstance), ages), wantWrites: 1},
+			},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			api := &fakeWorkloads{workload: twoCityWorkload()}
+			now := start
+			d := newTestDriver(t, api, &now)
+			d.Interval = interval
+			for _, tk := range c.ticks {
+				now = start.Add(tk.at)
+				d.Tick(context.Background(), tk.view)
+				if len(api.writes) != tk.wantWrites {
+					t.Fatalf("%s after start: %d writes, want %d", tk.at, len(api.writes), tk.wantWrites)
+				}
+			}
+		})
+	}
+}
+
 func TestDriverRollsBackWhenAScaleUpDoesNotSettle(t *testing.T) {
 	api := &fakeWorkloads{workload: twoCityWorkload()}
 	now := time.Now()
 	d := newTestDriver(t, api, &now)
 
 	v := stableView("mesh-a", "mesh-a", "mesh-b")
+	takeTheFleet(t, d, &now, v)
 	d.Tick(context.Background(), v)
 	if len(api.writes) != 1 {
 		t.Fatalf("got %d writes", len(api.writes))
@@ -621,14 +706,17 @@ func TestDriverTreatsAConflictAsALostRace(t *testing.T) {
 	d := newTestDriver(t, api, &now)
 
 	v := stableView("mesh-a", "mesh-a", "mesh-b")
+	takeTheFleet(t, d, &now, v)
+	tookOver := d.State().LastActionAt
+
 	d.Tick(context.Background(), v)
 	if len(api.writes) != 0 {
 		t.Fatalf("a lost race was recorded as a write: %+v", api.writes)
 	}
-	if st := d.State(); !st.LastActionAt.IsZero() {
-		t.Error("a lost race must not start the interval")
+	if st := d.State(); !st.LastActionAt.Equal(tookOver) {
+		t.Errorf("a lost race restarted the interval: %s, want %s", st.LastActionAt, tookOver)
 	}
-	// The next tick simply tries again.
+	// The next tick simply tries again, without waiting out another interval.
 	d.Tick(context.Background(), v)
 	if len(api.writes) != 1 {
 		t.Fatalf("did not retry after the conflict: %d writes", len(api.writes))
@@ -639,6 +727,7 @@ func TestDriverSurvivesAnUnreadableWorkload(t *testing.T) {
 	api := &fakeWorkloads{workload: twoCityWorkload(), getErr: errors.New("boom")}
 	now := time.Now()
 	d := newTestDriver(t, api, &now)
+	takeTheFleet(t, d, &now, stableView("mesh-a", "mesh-a", "mesh-b"))
 	d.Tick(context.Background(), stableView("mesh-a", "mesh-a", "mesh-b"))
 	if len(api.writes) != 0 {
 		t.Fatalf("wrote without reading: %+v", api.writes)
@@ -653,6 +742,7 @@ func TestDriverStateReportsCities(t *testing.T) {
 	d := newTestDriver(t, api, &now)
 	// Dallas is already at the ceiling, so the staircase moves Ashburn.
 	d.MaxPerCity = 2
+	takeTheFleet(t, d, &now, stableView("mesh-a", "mesh-a", "mesh-b"))
 	d.Tick(context.Background(), stableView("mesh-a", "mesh-a", "mesh-b"))
 
 	st := d.State()

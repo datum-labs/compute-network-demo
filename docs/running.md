@@ -88,7 +88,9 @@ It is off by default, and it is the only thing in the demo that writes.
   Base placements are never removed, and a city whose base placement is not
   available is left alone entirely.
 - **How slowly.** One change at a time, no sooner than `MESH_DRIVER_INTERVAL`
-  after the last one, and only when the fleet is settled: every Instance
+  after the last one — or, for a replica that has just taken the fleet, after it
+  started driving, so a rollout waits a full interval before its first change —
+  and only when the fleet is settled: every Instance
   running, none draining, and every link up. After a scale-up nothing else
   happens until the new Instance is in the mesh and reachable by every peer. If
   that has not happened within `MESH_DRIVER_SETTLE_TIMEOUT` the placement is
