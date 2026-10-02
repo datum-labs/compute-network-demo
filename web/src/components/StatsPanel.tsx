@@ -23,7 +23,7 @@ const MIN_FEEDS_HEIGHT = 420;
 // blurring it cost a re-raster of every panel on every frame and looked the
 // same either way.
 const panelCard =
-  'gap-0 rounded-2xl border-white/[0.08] bg-white/[0.035] py-0 text-white shadow-none';
+  'gap-0 rounded-2xl border-line-8 bg-wash-card py-0 text-ink shadow-none';
 
 interface Props {
   view: MeshView | null;
@@ -72,6 +72,12 @@ export function StatsPanel({
   const totals = view?.totals;
   const measured = links.filter((l) => l.state !== 'pending');
   const healthy = measured.filter((l) => l.state === 'up').length;
+  // Every pair of Instances that can reach each other, counted once rather
+  // than once per direction: the links Datum stood up on the workload's own
+  // network when it deployed.
+  const privateLinks = new Set(
+    (view?.edges ?? []).map((e) => [e.from, e.to].sort().join('\u0000')),
+  ).size;
   const selfRegion = regions.find((r) => r.isSelf) ?? null;
   const selfInstance = selfRegion?.instances.find((i) => i.isSelf);
 
@@ -97,7 +103,7 @@ export function StatsPanel({
       label: 'Connections',
       value: measured.length ? `${healthy}/${measured.length}` : '—',
       unit: measured.length ? 'healthy' : undefined,
-      accent: measured.length > 0 && healthy < measured.length ? '#F2C46D' : undefined,
+      accent: measured.length > 0 && healthy < measured.length ? 'var(--status-degraded)' : undefined,
     },
   ];
 
@@ -154,34 +160,34 @@ export function StatsPanel({
       </Card>
 
       {/* The two headline numbers share a card: the activity feed below needs
-          the room, and they belong together anyway — all this traffic, none of
-          it on the public internet. */}
+          the room, and they belong together anyway — all this traffic, carried
+          on a network only the fleet can reach. */}
       <Card className={`${panelCard} relative overflow-hidden`}>
-        <div className="pointer-events-none absolute -top-20 -right-20 size-52 rounded-full bg-[#E6F59E]/[0.07] blur-3xl" />
+        <div className="pointer-events-none absolute -top-20 -right-20 size-52 rounded-full bg-moss/[0.07] blur-3xl" />
         <div className="relative grid grid-cols-2">
-          <div className={`${headline} border-r border-white/[0.07]`}>
+          <div className={`${headline} border-r border-line-7`}>
             <PanelHeading>{compact ? 'Messages' : 'Messages exchanged'}</PanelHeading>
             <LiveCounter
               value={totals?.messages ?? 0}
-              className={`mt-1.5 block leading-none font-medium tracking-[-0.03em] text-white tabular-nums ${
+              className={`mt-1.5 block leading-none font-medium tracking-[-0.03em] text-ink tabular-nums ${
                 compact ? 'text-[26px]' : 'text-[34px]'
               }`}
             />
-            <p className={`text-white/45 ${compact ? 'mt-1 text-[11px]' : 'mt-1.5 text-[12px]'}`}>
+            <p className={`text-ink-45 ${compact ? 'mt-1 text-[11px]' : 'mt-1.5 text-[12px]'}`}>
               sent between Instances, privately
             </p>
           </div>
-          <div className={headline} data-tour="public-internet">
-            <PanelHeading>Public internet</PanelHeading>
+          <div className={headline} data-tour="private-links">
+            <PanelHeading>Private links</PanelHeading>
             <div
-              className={`mt-1.5 leading-none font-medium tracking-[-0.03em] text-[#E6F59E] tabular-nums ${
+              className={`mt-1.5 leading-none font-medium tracking-[-0.03em] text-moss tabular-nums ${
                 compact ? 'text-[26px]' : 'text-[34px]'
               }`}
             >
-              {totals?.publicInternetBytes ?? 0} bytes
+              {privateLinks}
             </div>
-            <p className={`text-white/45 ${compact ? 'mt-1 text-[11px]' : 'mt-1.5 text-[12px]'}`}>
-              from the whole fleet
+            <p className={`text-ink-45 ${compact ? 'mt-1 text-[11px]' : 'mt-1.5 text-[12px]'}`}>
+              {compact ? 'no public exposure' : 'on the fleet\u2019s own network, not publicly reachable'}
             </p>
           </div>
         </div>
@@ -211,7 +217,7 @@ export function StatsPanel({
  * clean around the outside whichever shape it is in.
  */
 function rule(i: number, count: number, wide: boolean): string {
-  const line = 'border-white/[0.07]';
+  const line = 'border-line-7';
   if (wide) return i < count - 1 ? `border-r ${line}` : '';
   return `${i % 2 === 0 ? `border-r ${line}` : ''} ${i < count - 2 ? `border-b ${line}` : ''}`;
 }
@@ -246,7 +252,7 @@ function Stat({
             <motion.span
               key={String(value)}
               className={`leading-none font-medium tracking-[-0.03em] tabular-nums ${size}`}
-              style={{ color: accent ?? '#ffffff' }}
+              style={{ color: accent ?? 'var(--ink)' }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10, transition: { duration: 0.18 } }}
@@ -258,12 +264,12 @@ function Stat({
         ) : (
           <span
             className={`leading-none font-medium tracking-[-0.03em] tabular-nums ${size}`}
-            style={{ color: accent ?? '#ffffff' }}
+            style={{ color: accent ?? 'var(--ink)' }}
           >
             {value}
           </span>
         )}
-        {unit && <span className={`text-white/50 ${compact ? 'text-[13px]' : 'text-[16px]'}`}>{unit}</span>}
+        {unit && <span className={`text-ink-50 ${compact ? 'text-[13px]' : 'text-[16px]'}`}>{unit}</span>}
       </div>
     </div>
   );

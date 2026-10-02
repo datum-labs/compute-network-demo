@@ -267,7 +267,7 @@ export function StoryCard({
       type="button"
       onClick={onExit}
       aria-label="Close the walkthrough"
-      className="-mt-1 -mr-1.5 grid size-7 shrink-0 place-items-center rounded-md text-white/35 transition-colors hover:bg-white/5 hover:text-white/80"
+      className="-mt-1 -mr-1.5 grid size-7 shrink-0 place-items-center rounded-md text-ink-35 transition-colors hover:bg-wash-5 hover:text-ink-80"
     >
       <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6">
         <path d="M4 4l8 8M12 4l-8 8" strokeLinecap="round" />
@@ -296,13 +296,13 @@ export function StoryCard({
             delay: travelling && !reducedMotion ? 0.55 : 0,
           }}
         >
-          <h2 className={`mt-1 leading-tight font-medium tracking-[-0.015em] text-white ${m.title}`}>
+          <h2 className={`mt-1 leading-tight font-medium tracking-[-0.015em] text-ink ${m.title}`}>
             {card.title}
           </h2>
           {/* Room for the sentence whatever it measures, so a number ticking
               over never reflows the card out from under its pointer. Under the
               map the bar is as short as its own words, so it takes none. */}
-          <p className={`mt-1.5 leading-snug text-white/60 ${m.body} ${docked ? '' : m.bodyMin}`}>{card.body}</p>
+          <p className={`mt-1.5 leading-snug text-ink-60 ${m.body} ${docked ? '' : m.bodyMin}`}>{card.body}</p>
         </motion.div>
       </AnimatePresence>
     </>
@@ -330,7 +330,7 @@ export function StoryCard({
   // few per cent of map showing through — and a re-raster of it every frame
   // the map moved underneath.
   const shell =
-    'overflow-hidden rounded-2xl border border-white/10 bg-[#0f2340]/95 text-white shadow-[0_24px_80px_rgba(0,0,0,0.55)]';
+    'overflow-hidden rounded-2xl border border-line-10 bg-surface/95 text-ink [box-shadow:var(--shadow-float)]';
 
   if (docked) {
     return (
@@ -434,7 +434,7 @@ function Pointer({
             y1={ty}
             x2={cx}
             y2={cy}
-            stroke="#E6F59E"
+            className="stroke-moss"
             strokeOpacity={0.3}
             strokeWidth={1}
             strokeDasharray="2 3"
@@ -442,7 +442,7 @@ function Pointer({
         )}
       </svg>
       <span
-        className="absolute size-3 rotate-45 border-t border-l border-white/10 bg-[#0f2340]/95"
+        className="absolute size-3 rotate-45 border-t border-l border-line-10 bg-surface/95"
         style={{
           left: tx,
           top: ty,
@@ -461,7 +461,7 @@ function Sequence({ nav }: { nav: Nav }) {
         <span
           key={i}
           className={`h-1 rounded-full transition-all duration-500 ${
-            i === nav.index ? 'w-5 bg-[#E6F59E]' : i < nav.index ? 'w-1.5 bg-[#E6F59E]/40' : 'w-1.5 bg-white/20'
+            i === nav.index ? 'w-5 bg-moss' : i < nav.index ? 'w-1.5 bg-moss/40' : 'w-1.5 bg-wash-20'
           }`}
         />
       ))}
@@ -474,10 +474,10 @@ function Since({ at }: { at: number }) {
   const now = useNow(1000);
   const elapsed = Math.max(0, Math.round((now - at) / 1000));
   return (
-    <p className="flex items-center gap-2 pt-0.5 text-[12px] font-medium tracking-[0.01em] text-[#E6F59E]/70">
+    <p className="flex items-center gap-2 pt-0.5 text-[12px] font-medium tracking-[0.01em] text-moss/70">
       <span className="relative flex size-1.5">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E6F59E] opacity-60" />
-        <span className="relative inline-flex size-1.5 rounded-full bg-[#E6F59E]" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-moss opacity-60" />
+        <span className="relative inline-flex size-1.5 rounded-full bg-moss" />
       </span>
       {elapsed < 5 ? 'Just now' : elapsed < 60 ? `${elapsed}s ago` : `${Math.floor(elapsed / 60)}m ago`}
     </p>
@@ -500,14 +500,14 @@ function Controls({
       <button
         type="button"
         onClick={nav.back}
-        className={`rounded-full border border-white/10 font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white ${metrics.button}`}
+        className={`rounded-full border border-line-10 font-medium text-ink-60 transition-colors hover:bg-wash-5 hover:text-ink ${metrics.button}`}
       >
         Back
       </button>
       <button
         type="button"
         onClick={nav.next}
-        className={`flex items-center justify-center gap-2 rounded-full bg-[#E6F59E] font-medium text-[#0c1d31] transition-colors hover:bg-[#EEF9C0] ${metrics.button} pr-2`}
+        className={`flex items-center justify-center gap-2 rounded-full bg-moss font-medium text-moss-ink transition-colors hover:bg-moss-hover ${metrics.button} pr-2`}
       >
         Next
         <Ring nav={nav} reducedMotion={reducedMotion} />
@@ -516,7 +516,7 @@ function Controls({
         <button
           type="button"
           onClick={nav.resume}
-          className={`rounded-full border border-[#E6F59E]/25 bg-[#E6F59E]/[0.07] font-medium text-[#E6F59E] transition-colors hover:bg-[#E6F59E]/15 ${metrics.button}`}
+          className={`rounded-full border border-moss/25 bg-moss/[0.07] font-medium text-moss transition-colors hover:bg-moss/15 ${metrics.button}`}
         >
           Resume
         </button>
@@ -554,14 +554,14 @@ function Ring({ nav, reducedMotion }: { nav: Nav; reducedMotion: boolean }) {
 
   return (
     <svg viewBox="0 0 20 20" className={`size-4 -rotate-90 ${nav.paused ? 'opacity-40' : ''}`} aria-hidden>
-      <circle cx="10" cy="10" r={RING_RADIUS} fill="none" stroke="#0c1d31" strokeOpacity={0.18} strokeWidth="2" />
+      <circle cx="10" cy="10" r={RING_RADIUS} fill="none" className="stroke-moss-ink" strokeOpacity={0.18} strokeWidth="2" />
       <circle
         ref={arc}
         cx="10"
         cy="10"
         r={RING_RADIUS}
         fill="none"
-        stroke="#0c1d31"
+        className="stroke-moss-ink"
         strokeOpacity={0.65}
         strokeWidth="2"
         strokeLinecap="round"
@@ -597,7 +597,7 @@ export function PlayStory({
       onClick={onClick}
       aria-label={words}
       title={words}
-      className={`flex shrink-0 items-center justify-center gap-2 rounded-full border border-[#E6F59E]/25 bg-[#E6F59E]/[0.07] font-medium whitespace-nowrap text-[#E6F59E] transition-colors hover:bg-[#E6F59E]/15 ${
+      className={`flex shrink-0 items-center justify-center gap-2 rounded-full border border-moss/25 bg-moss/[0.07] font-medium whitespace-nowrap text-moss transition-colors hover:bg-moss/15 ${
         iconOnly ? 'size-9' : compact ? 'px-3 py-1.5 text-[11.5px]' : 'px-4 py-2 text-[13px]'
       }`}
     >

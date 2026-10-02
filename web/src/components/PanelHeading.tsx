@@ -7,5 +7,5 @@
  * the numbers under it, which is all the separation it needed.
  */
 export function PanelHeading({ children }: { children: React.ReactNode }) {
-  return <p className="text-[12px] font-medium tracking-[0.01em] text-white/45">{children}</p>;
+  return <p className="text-[12px] font-medium tracking-[0.01em] text-ink-45">{children}</p>;
 }

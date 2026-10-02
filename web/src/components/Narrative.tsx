@@ -57,7 +57,7 @@ export function Narrative({
           >
             <span
               className={`h-1 rounded-full transition-all duration-500 ${
-                i === index ? 'w-6 bg-[#E6F59E]' : 'w-1.5 bg-white/20 group-hover:bg-white/40'
+                i === index ? 'w-6 bg-moss' : 'w-1.5 bg-wash-20 group-hover:bg-wash-40'
               }`}
             />
           </button>
@@ -69,8 +69,8 @@ export function Narrative({
             key={index}
             className={`absolute inset-0 flex items-start leading-snug font-normal tracking-[-0.01em] ${
               compact
-                ? `${short ? 'line-clamp-2 text-[13.5px]' : 'text-[15px]'} text-white/75`
-                : 'items-center text-[20px] text-white/80'
+                ? `${short ? 'line-clamp-2 text-[13.5px]' : 'text-[15px]'} text-ink-75`
+                : 'items-center text-[20px] text-ink-80'
             }`}
             initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}

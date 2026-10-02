@@ -1,4 +1,4 @@
-import { Logo } from '@datum-cloud/datum-ui/logo';
+import { ThemedLogo } from '@datum-cloud/datum-ui/logo/themed';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { InstanceCard } from './components/InstanceCard';
@@ -142,7 +142,7 @@ export function App() {
   return (
     <div
       data-layout={vp.mode}
-      className={`safe-area relative bg-[#0c1d31] font-sans text-white antialiased ${
+      className={`safe-area relative bg-page font-sans text-ink antialiased ${
         vp.stacked ? 'min-h-[100dvh]' : 'flex h-[100dvh] flex-col overflow-hidden'
       }`}
     >
@@ -159,8 +159,8 @@ export function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Logo.Flat tone="mono-light" className={vp.compact ? 'h-5 w-auto' : 'h-7 w-auto'} />
-          <span className={`w-px bg-white/15 ${vp.compact ? 'h-5' : 'h-7'}`} />
+          <ThemedLogo.Flat className={vp.compact ? 'h-5 w-auto' : 'h-7 w-auto'} />
+          <span className={`w-px bg-line-15 ${vp.compact ? 'h-5' : 'h-7'}`} />
           <div>
             <h1
               className={`leading-none font-medium tracking-[-0.01em] whitespace-nowrap ${
@@ -170,7 +170,7 @@ export function App() {
               Global Mesh
             </h1>
             {!vp.compact && (
-              <p className="mt-1.5 text-[13px] text-white/50">One workload running in every region, on a private network of its own.</p>
+              <p className="mt-1.5 text-[13px] text-ink-50">One workload running in every region, on an isolated network of its own.</p>
             )}
           </div>
         </motion.div>
@@ -182,11 +182,11 @@ export function App() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           {view?.discovery === 'static' && !vp.compact && (
-            <span className="text-[12px] tracking-[0.08em] text-white/30 uppercase">Static peers</span>
+            <span className="text-[12px] tracking-[0.08em] text-ink-30 uppercase">Static peers</span>
           )}
           {view?.mode === 'simulate' ? (
             <span
-              className={`rounded-full border border-white/10 bg-white/[0.03] font-medium tracking-[0.14em] text-white/55 uppercase ${
+              className={`rounded-full border border-line-10 bg-wash-3 font-medium tracking-[0.14em] text-ink-55 uppercase ${
                 vp.compact ? 'px-3 py-1 text-[10px]' : 'px-4 py-1.5 text-[12px]'
               }`}
             >
@@ -194,19 +194,19 @@ export function App() {
             </span>
           ) : (
             <span
-              className={`flex items-center rounded-full border border-white/10 bg-white/[0.04] font-medium tracking-[0.14em] uppercase ${
+              className={`flex items-center rounded-full border border-line-10 bg-wash-4 font-medium tracking-[0.14em] uppercase ${
                 vp.compact ? 'gap-2 py-1 pr-3 pl-2.5 text-[10px]' : 'gap-2.5 py-1.5 pr-4 pl-3 text-[12px]'
               }`}
             >
               <span className="relative flex size-2">
                 <span
                   className={`absolute inline-flex h-full w-full rounded-full opacity-60 ${
-                    stale ? 'bg-[#F2C46D]' : 'animate-ping bg-[#B3D56F]'
+                    stale ? 'bg-degraded' : 'animate-ping bg-up'
                   }`}
                 />
-                <span className={`relative inline-flex size-2 rounded-full ${stale ? 'bg-[#F2C46D]' : 'bg-[#B3D56F]'}`} />
+                <span className={`relative inline-flex size-2 rounded-full ${stale ? 'bg-degraded' : 'bg-up'}`} />
               </span>
-              <span className={stale ? 'text-[#F2C46D]' : 'text-white/85'}>{stale ? 'Reconnecting' : 'Live'}</span>
+              <span className={stale ? 'text-degraded' : 'text-ink-85'}>{stale ? 'Reconnecting' : 'Live'}</span>
             </span>
           )}
         </motion.div>
@@ -224,7 +224,7 @@ export function App() {
         <section
           className={
             vp.stacked
-              ? 'sticky top-0 z-20 flex flex-col bg-[#0c1d31] pb-1'
+              ? 'sticky top-0 z-20 flex flex-col bg-page pb-1'
               : 'flex min-w-0 flex-1 flex-col'
           }
         >
@@ -265,7 +265,7 @@ export function App() {
             <AnimatePresence>
               {(view?.notice || !view) && (
                 <motion.div
-                  className="absolute top-1/2 left-1/2 max-w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-[#0c1d31]/80 px-5 py-2.5 text-center text-[14px] text-white/70"
+                  className="absolute top-1/2 left-1/2 max-w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-line-10 bg-page/80 px-5 py-2.5 text-center text-[14px] text-ink-70"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -317,7 +317,7 @@ export function App() {
               resize under a camera that is mid-flight. */}
           <div
             className={`${vp.stacked && showing && intro.playing ? 'hidden' : ''} ${
-              vp.stacked ? `${stackedColumn(vp)} pt-1` : `border-t border-white/[0.07] ${vp.compact ? 'pt-4' : 'pt-6'}`
+              vp.stacked ? `${stackedColumn(vp)} pt-1` : `border-t border-line-7 ${vp.compact ? 'pt-4' : 'pt-6'}`
             }`}
           >
             {/* One voice at a time: the rotating line stands down for as long
@@ -349,7 +349,7 @@ export function App() {
           </div>
           {/* Softens the seam where cards scroll under the pinned map. */}
           {vp.stacked && (
-            <div className="pointer-events-none absolute inset-x-0 top-full h-4 bg-gradient-to-b from-[#0c1d31] to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-full h-4 bg-gradient-to-b from-page to-transparent" />
           )}
         </section>
 
@@ -514,9 +514,9 @@ function useMapSize(ref: React.RefObject<HTMLDivElement | null>, vp: Viewport): 
 function Backdrop() {
   return (
     <div className="pointer-events-none fixed inset-0">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_40%_45%,rgba(62,110,150,0.22),transparent_70%)]" />
-      <div className="absolute -top-40 left-1/3 h-[480px] w-[900px] rounded-full bg-[#E6F59E]/[0.035] blur-[120px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_90%_at_50%_50%,transparent_55%,rgba(5,12,22,0.65))]" />
+      <div className="absolute inset-0 [background-image:var(--backdrop-wash)]" />
+      <div className="absolute -top-40 left-1/3 h-[480px] w-[900px] rounded-full bg-moss/[0.035] blur-[120px]" />
+      <div className="absolute inset-0 [background-image:var(--backdrop-vignette)]" />
     </div>
   );
 }

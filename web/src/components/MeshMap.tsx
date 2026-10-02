@@ -299,21 +299,21 @@ function MeshMapImpl({
               same soft disc, and a filter would be re-rasterised every time the
               camera moved under it. */}
           <radialGradient id="halo-live">
-            <stop offset="0%" stopColor="#B3D56F" stopOpacity={1} />
-            <stop offset="42%" stopColor="#B3D56F" stopOpacity={0.88} />
-            <stop offset="68%" stopColor="#B3D56F" stopOpacity={0.36} />
-            <stop offset="100%" stopColor="#B3D56F" stopOpacity={0} />
+            <stop offset="0%" className="[stop-color:var(--status-up)]" stopOpacity={1} />
+            <stop offset="42%" className="[stop-color:var(--status-up)]" stopOpacity={0.88} />
+            <stop offset="68%" className="[stop-color:var(--status-up)]" stopOpacity={0.36} />
+            <stop offset="100%" className="[stop-color:var(--status-up)]" stopOpacity={0} />
           </radialGradient>
           <radialGradient id="halo-starting">
-            <stop offset="0%" stopColor="#F2C46D" stopOpacity={1} />
-            <stop offset="42%" stopColor="#F2C46D" stopOpacity={0.88} />
-            <stop offset="68%" stopColor="#F2C46D" stopOpacity={0.36} />
-            <stop offset="100%" stopColor="#F2C46D" stopOpacity={0} />
+            <stop offset="0%" className="[stop-color:var(--status-degraded)]" stopOpacity={1} />
+            <stop offset="42%" className="[stop-color:var(--status-degraded)]" stopOpacity={0.88} />
+            <stop offset="68%" className="[stop-color:var(--status-degraded)]" stopOpacity={0.36} />
+            <stop offset="100%" className="[stop-color:var(--status-degraded)]" stopOpacity={0} />
           </radialGradient>
           <radialGradient id="pin-core" cx="35%" cy="35%" r="70%">
-            <stop offset="0%" stopColor="#F4FBD2" />
-            <stop offset="55%" stopColor="#B3D56F" />
-            <stop offset="100%" stopColor="#7FA64A" />
+            <stop offset="0%" className="[stop-color:var(--pin-core-1)]" />
+            <stop offset="55%" className="[stop-color:var(--pin-core-2)]" />
+            <stop offset="100%" className="[stop-color:var(--pin-core-3)]" />
           </radialGradient>
         </defs>
 
@@ -362,7 +362,7 @@ function MeshMapImpl({
                   y1={a.y}
                   x2={b.x}
                   y2={b.y}
-                  stroke={link.draining ? STATE_COLOR.pending : STATE_COLOR[link.state]}
+                  style={{ stroke: link.draining ? STATE_COLOR.pending : STATE_COLOR[link.state] }}
                   strokeWidth={(flashing?.has(link.key) ? 2.2 : 1.3) * unit}
                   // A link to a draining Instance thins to a dashed trace, so
                   // the traffic is visibly winding down before it goes.
@@ -431,7 +431,7 @@ function MeshMapImpl({
                   y1={y}
                   x2={x}
                   y2={y + place.offset[1] + 12}
-                  stroke="#E6F59E"
+                  className="stroke-moss"
                   strokeOpacity={0.35}
                   strokeWidth={1}
                   strokeDasharray="2 3"
@@ -503,8 +503,8 @@ function MeshMapImpl({
             transition={{ duration: reducedMotion ? 0 : 0.7, ease: EASE_OUT }}
             style={{
               background: clearing
-                ? `radial-gradient(circle ${Math.round(Math.max(compact ? 110 : 150, radius * expansion + 110))}px at ${Math.round(clearing[0])}px ${Math.round(clearing[1])}px, rgba(6,16,28,0) 0%, rgba(6,16,28,0) 58%, rgba(6,16,28,0.58) 100%)`
-                : 'rgba(6,16,28,0.42)',
+                ? `radial-gradient(circle ${Math.round(Math.max(compact ? 110 : 150, radius * expansion + 110))}px at ${Math.round(clearing[0])}px ${Math.round(clearing[1])}px, rgb(var(--map-dim) / 0) 0%, rgb(var(--map-dim) / 0) 58%, rgb(var(--map-dim) / 0.58) 100%)`
+                : 'rgb(var(--map-dim) / 0.42)',
             }}
           />
         )}
@@ -611,7 +611,7 @@ function Arc({
         <motion.path
           d={d}
           fill="none"
-          stroke={color}
+          style={{ stroke: color }}
           strokeWidth={width}
           strokeLinecap="round"
           initial={{ pathLength: 0, strokeOpacity: baseOpacity }}
@@ -626,7 +626,7 @@ function Arc({
         <motion.path
           d={d}
           fill="none"
-          stroke={color}
+          style={{ stroke: color }}
           strokeWidth={width}
           strokeDasharray={link.state === 'pending' ? `${1.5 * unit} ${5 * unit}` : `${6 * unit} ${5 * unit}`}
           strokeLinecap="round"
@@ -648,18 +648,20 @@ function Arc({
             d={d}
             pathLength={100}
             className="flow flow-forward"
-            stroke={solid ? '#E6F59E' : color}
             strokeWidth={2.8 * unit}
-            style={{ animationDuration: `${duration}s`, animationDelay: `${delay}s` }}
+            style={{ stroke: solid ? 'var(--moss)' : color, animationDuration: `${duration}s`, animationDelay: `${delay}s` }}
           />
           {!compact && (
             <path
               d={d}
               pathLength={100}
               className="flow flow-reverse"
-              stroke={solid ? '#E6F59E' : color}
               strokeWidth={2.8 * unit}
-              style={{ animationDuration: `${duration * 1.07}s`, animationDelay: `${delay + duration / 2}s` }}
+              style={{
+                stroke: solid ? 'var(--moss)' : color,
+                animationDuration: `${duration * 1.07}s`,
+                animationDelay: `${delay + duration / 2}s`,
+              }}
             />
           )}
         </g>
@@ -715,7 +717,7 @@ function Pin({ region, scale, compact, reducedMotion, expansion, focused, onHove
         <motion.circle
           r={6}
           fill="none"
-          stroke="#E6F59E"
+          className="stroke-moss"
           strokeWidth={1.2}
           initial={{ scale: 1, opacity: 0.9 }}
           animate={{ scale: 5, opacity: 0 }}
@@ -730,8 +732,8 @@ function Pin({ region, scale, compact, reducedMotion, expansion, focused, onHove
         )}
         {arriving && !hub && <circle r={7.5} className="arrive-ring" />}
         {region.isSelf && !reducedMotion && !hub && <circle r={12.5} className="self-ring" />}
-        <circle r={5.6} fill={running ? 'url(#pin-core)' : '#6B7F93'} />
-        <circle r={2} fill="#0c1d31" opacity={0.85} />
+        <circle r={5.6} style={{ fill: running ? 'url(#pin-core)' : 'var(--status-pending)' }} />
+        <circle r={2} className="fill-pin-hole" opacity={0.85} />
         {count > 1 && !hub && (
           <g transform="translate(7 -7)">
             {/* Remounting on every change replays the spring, so a location
@@ -743,8 +745,8 @@ function Pin({ region, scale, compact, reducedMotion, expansion, focused, onHove
               transition={{ type: 'spring', stiffness: 420, damping: 17 }}
               style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
             >
-              <circle r={5.2} fill="#E6F59E" />
-              <text textAnchor="middle" dy="2.4" fontSize="7" fontWeight={600} fill="#0c1d31">
+              <circle r={5.2} className="fill-moss" />
+              <text textAnchor="middle" dy="2.4" fontSize="7" fontWeight={600} className="fill-moss-ink">
                 {count}
               </text>
             </motion.g>
@@ -773,7 +775,7 @@ function ReplicaPin({
   const { instance, region } = replica;
   const starting = instance.status === 'starting';
   const stopping = instance.status === 'stopping';
-  const core = starting ? '#F2C46D' : stopping ? '#6B7F93' : 'url(#pin-core)';
+  const core = starting ? 'var(--status-degraded)' : stopping ? 'var(--status-pending)' : 'url(#pin-core)';
   return (
     <motion.g
       data-pin
@@ -805,8 +807,8 @@ function ReplicaPin({
         {!reducedMotion && starting && <circle r={6.5} className="arrive-ring" />}
         {!reducedMotion && stopping && <circle r={6} className="drain-ring" />}
         {instance.isSelf && !reducedMotion && <circle r={10} className="self-ring" />}
-        <circle r={4.6} fill={core} />
-        <circle r={1.6} fill="#0c1d31" opacity={0.85} />
+        <circle r={4.6} style={{ fill: core }} />
+        <circle r={1.6} className="fill-pin-hole" opacity={0.85} />
         <circle r={14} fill="transparent" />
       </g>
     </motion.g>
@@ -833,12 +835,12 @@ function ReplicaLabel({
         className={`absolute -translate-x-1/2 translate-y-[13px] whitespace-nowrap ${
           compact ? 'text-[9.5px]' : 'text-[11px]'
         } font-medium tracking-[0.04em] ${
-          replica.instance.isSelf ? 'text-[#E6F59E]' : 'text-white/65'
-        } [text-shadow:0_1px_8px_rgba(12,29,49,0.95)]`}
+          replica.instance.isSelf ? 'text-moss' : 'text-ink-65'
+        } [text-shadow:0_1px_8px_var(--map-halo)]`}
       >
         Instance {replica.ordinal}
-        {replica.instance.status === 'starting' && <span className="text-[#F2C46D]"> · starting</span>}
-        {replica.instance.status === 'stopping' && <span className="text-white/40"> · draining</span>}
+        {replica.instance.status === 'starting' && <span className="text-degraded"> · starting</span>}
+        {replica.instance.status === 'stopping' && <span className="text-ink-40"> · draining</span>}
       </div>
     </div>
   );
@@ -903,7 +905,7 @@ function CityLabel({
         {region.isSelf && (
           <span
             data-here-chip
-            className={`mb-1 rounded-full bg-[#E6F59E] text-center font-semibold tracking-[0.12em] text-[#0c1d31] uppercase shadow-[0_0_28px_rgba(230,245,158,0.5)] ${
+            className={`mb-1 rounded-full bg-moss text-center font-semibold tracking-[0.12em] text-moss-ink uppercase [box-shadow:var(--shadow-moss-glow)] ${
               compact ? 'text-[9px]' : 'text-[10px]'
             }`}
             style={{ width: chip.width, height: chip.height, lineHeight: `${chip.height}px` }}
@@ -914,12 +916,12 @@ function CityLabel({
         <span
           className={`leading-tight font-medium tracking-[-0.01em] transition-colors duration-500 ${
             compact ? 'text-[12px]' : 'text-[15px]'
-          } ${focused ? 'text-white' : 'text-white/80'} [text-shadow:0_1px_10px_rgba(12,29,49,0.95)]`}
+          } ${focused ? 'text-ink' : 'text-ink-80'} [text-shadow:0_1px_10px_var(--map-halo)]`}
         >
           {region.city}
         </span>
         <span
-          className={`font-medium tracking-[0.14em] text-[#E6F59E]/65 uppercase [text-shadow:0_1px_8px_rgba(12,29,49,0.95)] ${
+          className={`font-medium tracking-[0.14em] text-moss/65 uppercase [text-shadow:0_1px_8px_var(--map-halo)] ${
             compact ? 'text-[9px]' : 'text-[10.5px]'
           }`}
         >
@@ -927,7 +929,7 @@ function CityLabel({
         </span>
         {detail && (
           <span
-            className={`text-white/50 [text-shadow:0_1px_8px_rgba(12,29,49,0.95)] ${
+            className={`text-ink-50 [text-shadow:0_1px_8px_var(--map-halo)] ${
               compact ? 'text-[9.5px]' : 'text-[11px]'
             }`}
           >
@@ -951,13 +953,13 @@ function ArcLabel({ link, focus, at }: { link: Link; focus: string; at: [number,
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.45, ease: EASE_OUT }}
     >
-      <div className="flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0c1d31]/90 py-1 pr-3 pl-2 text-[12px] whitespace-nowrap shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+      <div className="flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border border-line-10 bg-page/90 py-1 pr-3 pl-2 text-[12px] whitespace-nowrap [box-shadow:var(--shadow-pill)]">
         <span className="size-1.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
-        <span className="text-white/80">
-          {from.city} <span className="text-white/40">↔</span> {to.city}
+        <span className="text-ink-80">
+          {from.city} <span className="text-ink-40">↔</span> {to.city}
         </span>
-        <span className="text-white/30">·</span>
-        <span className="font-medium tabular-nums" style={{ color: link.state === 'up' ? '#E6F59E' : color }}>
+        <span className="text-ink-30">·</span>
+        <span className="font-medium tabular-nums" style={{ color: link.state === 'up' ? 'var(--moss)' : color }}>
           {arcLabelText(link)}
         </span>
       </div>
@@ -991,19 +993,19 @@ function ZoomControls({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             onClick={stop(() => camera.reset())}
-            className="rounded-full border border-white/10 bg-[#0c1d31]/85 px-3.5 py-2 text-[12px] font-medium text-white/80 transition-colors hover:bg-[#0c1d31] hover:text-white"
+            className="rounded-full border border-line-10 bg-page/85 px-3.5 py-2 text-[12px] font-medium text-ink-80 transition-colors hover:bg-page hover:text-ink"
           >
             Whole fleet
           </motion.button>
         )}
       </AnimatePresence>
-      <div className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0c1d31]/85">
+      <div className="flex flex-col overflow-hidden rounded-xl border border-line-10 bg-page/85">
         <button
           type="button"
           aria-label="Zoom in"
           disabled={!camera.canZoomIn}
           onClick={stop(() => camera.zoomBy(ZOOM_STEP, undefined, true))}
-          className={`${size} grid place-items-center text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:text-white/20`}
+          className={`${size} grid place-items-center text-ink-70 transition-colors hover:bg-wash-10 hover:text-ink disabled:text-ink-20`}
         >
           <svg viewBox="0 0 16 16" className="size-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             <path d="M8 3v10M3 8h10" />
@@ -1014,7 +1016,7 @@ function ZoomControls({
           aria-label="Zoom out"
           disabled={!camera.engaged}
           onClick={stop(() => camera.zoomBy(1 / ZOOM_STEP, undefined, true))}
-          className={`${size} grid place-items-center border-t border-white/10 text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:text-white/20`}
+          className={`${size} grid place-items-center border-t border-line-10 text-ink-70 transition-colors hover:bg-wash-10 hover:text-ink disabled:text-ink-20`}
         >
           <svg viewBox="0 0 16 16" className="size-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             <path d="M3 8h10" />

@@ -64,8 +64,8 @@ export function InstanceCard({
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       onClick={(e) => e.stopPropagation()}
     >
-      <Card className="gap-0 overflow-hidden rounded-2xl border-white/10 bg-[#0f2340]/92 py-0 text-white shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
-        <div className="flex items-start justify-between gap-3 border-b border-white/[0.07] px-5 pt-4 pb-3.5">
+      <Card className="gap-0 overflow-hidden rounded-2xl border-line-10 bg-surface/92 py-0 text-ink [box-shadow:var(--shadow-float)]">
+        <div className="flex items-start justify-between gap-3 border-b border-line-7 px-5 pt-4 pb-3.5">
           <div>
             <div className="flex items-center gap-2">
               <h3
@@ -74,21 +74,21 @@ export function InstanceCard({
                 {region.city}
               </h3>
               {region.isSelf && (
-                <span className="rounded-full bg-[#E6F59E] px-1.5 py-px text-[9.5px] font-semibold tracking-[0.12em] text-[#0c1d31] uppercase">
+                <span className="rounded-full bg-moss px-1.5 py-px text-[9.5px] font-semibold tracking-[0.12em] text-moss-ink uppercase">
                   You
                 </span>
               )}
             </div>
-            <p className="mt-0.5 text-[13px] text-white/55">
+            <p className="mt-0.5 text-[13px] text-ink-55">
               {region.country}
-              <span className="text-white/35"> · {region.location}</span>
+              <span className="text-ink-35"> · {region.location}</span>
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-2 grid size-11 place-items-center rounded-md text-white/40 transition-colors hover:bg-white/5 hover:text-white/80"
+            className="-mr-2 grid size-11 place-items-center rounded-md text-ink-40 transition-colors hover:bg-wash-5 hover:text-ink-80"
           >
             <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6">
               <path d="M4 4l8 8M12 4l-8 8" strokeLinecap="round" />
@@ -98,7 +98,7 @@ export function InstanceCard({
 
         {/* A location running several replicas lists them all, so the card
             scrolls rather than running off the map. */}
-        <div className={`divide-y divide-white/[0.07] ${inline ? '' : 'max-h-[52vh] overflow-y-auto overscroll-contain'}`}>
+        <div className={`divide-y divide-line-7 ${inline ? '' : 'max-h-[52vh] overflow-y-auto overscroll-contain'}`}>
           {region.instances.map((inst) => {
             const reachableShare = inst.peersTotal > 0 ? inst.peersReachable / inst.peersTotal : 1;
             const unreachable = !inst.reporting && inst.peersTotal > 0 && inst.peersReachable === 0;
@@ -112,7 +112,7 @@ export function InstanceCard({
             return (
               <div key={inst.name} className="space-y-3 px-5 py-4">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="truncate font-mono text-[11px] text-white/45" title={inst.name}>
+                  <span className="truncate font-mono text-[11px] text-ink-45" title={inst.name}>
                     {inst.name}
                   </span>
                   <Badge type={status.type} theme="light" className="shrink-0 rounded-full text-[11px]">
@@ -120,28 +120,28 @@ export function InstanceCard({
                   </Badge>
                 </div>
                 <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[13px]">
-                  <dt className="text-white/45">Private address</dt>
-                  <dd className="truncate text-right font-mono text-[12px] text-white/90">{inst.privateIP || '—'}</dd>
-                  <dt className="text-white/45">Uptime</dt>
-                  <dd className="text-right text-white/90 tabular-nums">
+                  <dt className="text-ink-45">Private address</dt>
+                  <dd className="truncate text-right font-mono text-[12px] text-ink-90">{inst.privateIP || '—'}</dd>
+                  <dt className="text-ink-45">Uptime</dt>
+                  <dd className="text-right text-ink-90 tabular-nums">
                     {inst.uptimeSeconds > 0 || inst.reporting ? formatUptime(inst.uptimeSeconds + elapsed) : '—'}
                   </dd>
                   {inst.joinMs ? (
                     <>
-                      <dt className="text-white/45">Joined the network in</dt>
-                      <dd className="text-right text-[#E6F59E] tabular-nums">{(inst.joinMs / 1000).toFixed(1)}s</dd>
+                      <dt className="text-ink-45">Joined the network in</dt>
+                      <dd className="text-right text-moss tabular-nums">{(inst.joinMs / 1000).toFixed(1)}s</dd>
                     </>
                   ) : null}
-                  <dt className="text-white/45">Peers reachable</dt>
-                  <dd className="text-right text-white/90 tabular-nums">
+                  <dt className="text-ink-45">Peers reachable</dt>
+                  <dd className="text-right text-ink-90 tabular-nums">
                     {inst.peersTotal === 0 ? 'No peers yet' : `${inst.peersReachable} of ${inst.peersTotal}`}
                   </dd>
                 </dl>
                 {inst.peersTotal > 0 && (
-                  <div className="h-1 overflow-hidden rounded-full bg-white/[0.08]">
+                  <div className="h-1 overflow-hidden rounded-full bg-wash-8">
                     <motion.div
                       className="h-full rounded-full"
-                      style={{ background: reachableShare === 1 ? '#B3D56F' : reachableShare === 0 ? '#EF7B6C' : '#F2C46D' }}
+                      style={{ background: reachableShare === 1 ? 'var(--status-up)' : reachableShare === 0 ? 'var(--status-down)' : 'var(--status-degraded)' }}
                       initial={{ width: 0 }}
                       animate={{ width: `${reachableShare * 100}%` }}
                       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}

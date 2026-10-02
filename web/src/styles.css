@@ -1,17 +1,214 @@
 @import 'tailwindcss';
 @import '@datum-cloud/datum-ui/styles';
 
+/*
+ * The page follows the visitor's system scheme. Every colour it paints with is
+ * named here twice: the `.dark` value is the one the demo has always shipped,
+ * so the dark rendering is unchanged, and the `:root` value is its light-mode
+ * counterpart. Nothing downstream hardcodes a colour, so a scheme flip is a
+ * variable swap rather than a second set of classes.
+ *
+ * Ink, line and wash are alpha ladders over the scheme's text colour. Light
+ * mode runs a little heavier than dark at the faint end: the same alpha of
+ * midnight fjord on paper carries less contrast than white on midnight, and
+ * these steps label figures rather than decorate them.
+ */
+:root {
+  /* Lets form controls, scrollbars and overlays follow the scheme too. */
+  color-scheme: light dark;
+
+  --page: var(--glacier-mist-700);
+
+  /* Text */
+  --ink: var(--midnight-fjord);
+  --ink-90: rgba(12, 29, 49, 0.92);
+  --ink-85: rgba(12, 29, 49, 0.9);
+  --ink-80: rgba(12, 29, 49, 0.86);
+  --ink-75: rgba(12, 29, 49, 0.84);
+  --ink-70: rgba(12, 29, 49, 0.8);
+  --ink-65: rgba(12, 29, 49, 0.76);
+  --ink-60: rgba(12, 29, 49, 0.72);
+  --ink-55: rgba(12, 29, 49, 0.68);
+  --ink-50: rgba(12, 29, 49, 0.64);
+  --ink-45: rgba(12, 29, 49, 0.6);
+  --ink-40: rgba(12, 29, 49, 0.56);
+  --ink-35: rgba(12, 29, 49, 0.53);
+  --ink-30: rgba(12, 29, 49, 0.5);
+  --ink-20: rgba(12, 29, 49, 0.32);
+
+  /* Hairlines and dividers */
+  --line-4: rgba(12, 29, 49, 0.07);
+  --line-7: rgba(12, 29, 49, 0.1);
+  --line-8: rgba(12, 29, 49, 0.11);
+  --line-10: rgba(12, 29, 49, 0.13);
+  --line-15: rgba(12, 29, 49, 0.16);
+
+  /* Tinted fills: chips, meter tracks, hover states, progress dots */
+  --wash-3: rgba(12, 29, 49, 0.035);
+  --wash-4: rgba(12, 29, 49, 0.045);
+  --wash-5: rgba(12, 29, 49, 0.06);
+  --wash-8: rgba(12, 29, 49, 0.1);
+  --wash-10: rgba(12, 29, 49, 0.1);
+  --wash-20: rgba(12, 29, 49, 0.18);
+  --wash-40: rgba(12, 29, 49, 0.38);
+  /* The stats tiles read as paper over the page rather than as a tint. */
+  --wash-card: #ffffff;
+
+  /* Cards that float over the map */
+  --surface: #ffffff;
+  --shadow-float: 0 18px 48px rgba(12, 29, 49, 0.14);
+  --shadow-pill: 0 8px 24px rgba(12, 29, 49, 0.12);
+  --shadow-moss-glow: 0 6px 18px rgba(68, 110, 61, 0.3);
+
+  /* Brand accent. Aurora moss is unreadable on paper, so light mode speaks
+     with pine forge, the Datum light-theme green, and keeps the same role. */
+  --moss: var(--pine-forge);
+  --moss-hover: #35582f;
+  /* Text and marks sitting on top of a solid accent fill. */
+  --moss-ink: var(--glacier-mist-700);
+
+  /* Status. Recognisably the same four signals, darkened so each one carries
+     on paper: ready green, starting amber, unreachable red, quiet slate. */
+  --status-up: #4c7a1f;
+  --status-degraded: #9a6200;
+  --status-down: #c1352b;
+  --status-pending: #5b6b7c;
+
+  /* The gradient inside a running pin, light to deep. */
+  --pin-core-1: #a9d25e;
+  --pin-core-2: #5f8f26;
+  --pin-core-3: #3e6a12;
+  /* Punched out of a pin's middle, so it reads as a ring at any zoom. */
+  --pin-hole: var(--glacier-mist-700);
+
+  /* The map: a halo behind labels drawn over the dots, and the wash that dims
+     everything outside the spotlight's clearing. */
+  --map-halo: rgba(252, 253, 247, 0.95);
+  --map-dim: 252 253 247;
+
+  --backdrop-wash: radial-gradient(ellipse 70% 55% at 40% 45%, rgba(62, 110, 150, 0.1), transparent 70%);
+  --backdrop-vignette: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(12, 29, 49, 0.06));
+}
+
+.dark {
+  --page: var(--midnight-fjord);
+
+  --ink: #ffffff;
+  --ink-90: rgba(255, 255, 255, 0.9);
+  --ink-85: rgba(255, 255, 255, 0.85);
+  --ink-80: rgba(255, 255, 255, 0.8);
+  --ink-75: rgba(255, 255, 255, 0.75);
+  --ink-70: rgba(255, 255, 255, 0.7);
+  --ink-65: rgba(255, 255, 255, 0.65);
+  --ink-60: rgba(255, 255, 255, 0.6);
+  --ink-55: rgba(255, 255, 255, 0.55);
+  --ink-50: rgba(255, 255, 255, 0.5);
+  --ink-45: rgba(255, 255, 255, 0.45);
+  --ink-40: rgba(255, 255, 255, 0.4);
+  --ink-35: rgba(255, 255, 255, 0.35);
+  --ink-30: rgba(255, 255, 255, 0.3);
+  --ink-20: rgba(255, 255, 255, 0.2);
+
+  --line-4: rgba(255, 255, 255, 0.04);
+  --line-7: rgba(255, 255, 255, 0.07);
+  --line-8: rgba(255, 255, 255, 0.08);
+  --line-10: rgba(255, 255, 255, 0.1);
+  --line-15: rgba(255, 255, 255, 0.15);
+
+  --wash-3: rgba(255, 255, 255, 0.03);
+  --wash-4: rgba(255, 255, 255, 0.04);
+  --wash-5: rgba(255, 255, 255, 0.05);
+  --wash-8: rgba(255, 255, 255, 0.08);
+  --wash-10: rgba(255, 255, 255, 0.1);
+  --wash-20: rgba(255, 255, 255, 0.2);
+  --wash-40: rgba(255, 255, 255, 0.4);
+  --wash-card: rgba(255, 255, 255, 0.035);
+
+  --surface: #0f2340;
+  --shadow-float: 0 24px 80px rgba(0, 0, 0, 0.5);
+  --shadow-pill: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow-moss-glow: 0 0 28px rgba(230, 245, 158, 0.5);
+
+  --moss: var(--aurora-moss);
+  --moss-hover: #eef9c0;
+  --moss-ink: var(--midnight-fjord);
+
+  --status-up: #b3d56f;
+  --status-degraded: #f2c46d;
+  --status-down: #ef7b6c;
+  --status-pending: #8fa3b8;
+
+  --pin-core-1: #f4fbd2;
+  --pin-core-2: #b3d56f;
+  --pin-core-3: #7fa64a;
+  --pin-hole: var(--midnight-fjord);
+
+  --map-halo: rgba(12, 29, 49, 0.95);
+  --map-dim: 6 16 28;
+
+  --backdrop-wash: radial-gradient(ellipse 70% 55% at 40% 45%, rgba(62, 110, 150, 0.22), transparent 70%);
+  --backdrop-vignette: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(5, 12, 22, 0.65));
+}
+
+/* `inline` so the utilities resolve the variable at use, which is what lets a
+   single class follow the scheme. */
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+
+  --color-ink: var(--ink);
+  --color-ink-90: var(--ink-90);
+  --color-ink-85: var(--ink-85);
+  --color-ink-80: var(--ink-80);
+  --color-ink-75: var(--ink-75);
+  --color-ink-70: var(--ink-70);
+  --color-ink-65: var(--ink-65);
+  --color-ink-60: var(--ink-60);
+  --color-ink-55: var(--ink-55);
+  --color-ink-50: var(--ink-50);
+  --color-ink-45: var(--ink-45);
+  --color-ink-40: var(--ink-40);
+  --color-ink-35: var(--ink-35);
+  --color-ink-30: var(--ink-30);
+  --color-ink-20: var(--ink-20);
+
+  --color-line-4: var(--line-4);
+  --color-line-7: var(--line-7);
+  --color-line-8: var(--line-8);
+  --color-line-10: var(--line-10);
+  --color-line-15: var(--line-15);
+
+  --color-wash-3: var(--wash-3);
+  --color-wash-4: var(--wash-4);
+  --color-wash-5: var(--wash-5);
+  --color-wash-8: var(--wash-8);
+  --color-wash-10: var(--wash-10);
+  --color-wash-20: var(--wash-20);
+  --color-wash-40: var(--wash-40);
+  --color-wash-card: var(--wash-card);
+
+  --color-moss: var(--moss);
+  --color-moss-hover: var(--moss-hover);
+  --color-moss-ink: var(--moss-ink);
+  --color-pin-hole: var(--pin-hole);
+
+  --color-up: var(--status-up);
+  --color-degraded: var(--status-degraded);
+  --color-down: var(--status-down);
+  --color-pending: var(--status-pending);
+}
+
 html,
 body,
 #root {
   min-height: 100%;
-  background: #0c1d31;
+  background: var(--page);
 }
 
 body {
   font-feature-settings: 'ss01', 'tnum' 0;
-  /* Dark behind the notch and the home indicator. */
-  background-color: #0c1d31;
+  /* Matches the page behind the notch and the home indicator. */
+  background-color: var(--page);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -23,9 +220,17 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* The dotted world map ships grey; lift it slightly against midnight fjord. */
+/* The dotted world map ships as a flat sage image, so it cannot be recoloured
+   by a variable. Dark mode lifts it slightly against midnight fjord; on paper
+   the same sage all but disappears, so light mode darkens the dots instead and
+   carries them a little stronger. */
 .map-dots {
   opacity: 0.6;
+}
+
+:root:not(.dark) .map-dots {
+  opacity: 1;
+  filter: brightness(0.3) saturate(0.9);
 }
 
 /* Fade the map into the page so a cropped view never shows a hard edge. */
@@ -69,7 +274,7 @@ body {
 
 .pulse-ring {
   fill: none;
-  stroke: #b3d56f;
+  stroke: var(--status-up);
   stroke-width: 1.2;
   transform-box: fill-box;
   transform-origin: center;
@@ -89,7 +294,7 @@ body {
    out of it, so joining reads differently from running. */
 .arrive-ring {
   fill: none;
-  stroke: #f2c46d;
+  stroke: var(--status-degraded);
   stroke-width: 1.3;
   transform-box: fill-box;
   transform-origin: center;
@@ -105,7 +310,7 @@ body {
 /* An Instance draining: one slow breath out, going quiet. */
 .drain-ring {
   fill: none;
-  stroke: #8fa3b8;
+  stroke: var(--status-pending);
   stroke-width: 1.1;
   transform-box: fill-box;
   transform-origin: center;
@@ -119,7 +324,7 @@ body {
 
 .self-ring {
   fill: none;
-  stroke: #e6f59e;
+  stroke: var(--moss);
   stroke-width: 1.3;
   stroke-dasharray: 3 3.5;
   transform-box: fill-box;

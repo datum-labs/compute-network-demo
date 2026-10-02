@@ -27,11 +27,11 @@ const MAX_ROWS = 14;
 
 /** How each kind of event reads, and the colour it carries. */
 const TONE = {
-  'scaled-up': '#E6F59E',
-  'scaled-down': '#8FA3B8',
-  'instance-starting': '#F2C46D',
-  'instance-ready': '#B3D56F',
-  'instance-stopping': '#8FA3B8',
+  'scaled-up': 'var(--moss)',
+  'scaled-down': 'var(--status-pending)',
+  'instance-starting': 'var(--status-degraded)',
+  'instance-ready': 'var(--status-up)',
+  'instance-stopping': 'var(--status-pending)',
 } as const;
 
 const formatSeconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
@@ -113,16 +113,16 @@ function ActivityPanelImpl({
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-baseline justify-between">
         <PanelHeading>Platform activity</PanelHeading>
-        <span className="text-[11px] text-white/35">scales itself</span>
+        <span className="text-[11px] text-ink-35">scales itself</span>
       </div>
 
       {/* The line an investor should leave with, and the reason the lifecycle
           is simulated at all rather than instances simply appearing. */}
       <div
-        className="mt-2.5 flex items-center gap-3.5 rounded-xl border border-[#E6F59E]/25 bg-[#E6F59E]/[0.07] px-3.5 py-2.5"
+        className="mt-2.5 flex items-center gap-3.5 rounded-xl border border-moss/25 bg-moss/[0.07] px-3.5 py-2.5"
       >
         <span
-          className={`leading-none font-medium tracking-[-0.03em] text-[#E6F59E] tabular-nums ${
+          className={`leading-none font-medium tracking-[-0.03em] text-moss tabular-nums ${
             compact ? 'text-[26px]' : 'text-[32px]'
           }`}
         >
@@ -130,9 +130,9 @@ function ActivityPanelImpl({
         </span>
         {/* The one sentence in the panel, held to a measure: everything else
             here is a number or a name and reads at any width. */}
-        <span className={`min-w-0 flex-1 leading-snug text-white/70 max-w-[54ch] ${compact ? 'text-[11.5px]' : 'text-[12.5px]'}`}>
+        <span className={`min-w-0 flex-1 leading-snug text-ink-70 max-w-[54ch] ${compact ? 'text-[11.5px]' : 'text-[12.5px]'}`}>
           is how long a new Instance takes to reach every peer.
-          <span className="text-white/45"> Datum sets up that network.</span>
+          <span className="text-ink-45"> Datum sets up that network.</span>
         </span>
       </div>
 
@@ -154,27 +154,27 @@ function ActivityPanelImpl({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, transition: { duration: 0.12 } }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-start gap-2.5 border-b border-white/[0.04] py-2"
+                className="flex items-start gap-2.5 border-b border-line-4 py-2"
               >
                 <span
                   className="mt-[6px] size-1.5 shrink-0 rounded-full"
                   style={{ background: TONE[e.type], boxShadow: `0 0 8px ${TONE[e.type]}` }}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className={`block truncate font-medium text-white/90 ${compact ? 'text-[12.5px]' : 'text-[13.5px]'}`}>
+                  <span className={`block truncate font-medium text-ink-90 ${compact ? 'text-[12.5px]' : 'text-[13.5px]'}`}>
                     {title}
                   </span>
                   {detail && (
                     <span
                       className={`block truncate ${compact ? 'text-[11px]' : 'text-[12px]'} ${
-                        highlight ? 'text-[#E6F59E]' : 'text-white/45'
+                        highlight ? 'text-moss' : 'text-ink-45'
                       }`}
                     >
                       {detail}
                     </span>
                   )}
                 </span>
-                <span className={`shrink-0 pt-[1px] text-white/30 tabular-nums ${compact ? 'text-[10.5px]' : 'text-[11.5px]'}`}>
+                <span className={`shrink-0 pt-[1px] text-ink-30 tabular-nums ${compact ? 'text-[10.5px]' : 'text-[11.5px]'}`}>
                   {ago(e.at, clock)}
                 </span>
               </motion.li>
@@ -182,7 +182,7 @@ function ActivityPanelImpl({
           })}
         </AnimatePresence>
         {rows.length === 0 && (
-          <li className={`py-2 text-white/40 ${compact ? 'text-[12.5px]' : 'text-[13.5px]'}`}>
+          <li className={`py-2 text-ink-40 ${compact ? 'text-[12.5px]' : 'text-[13.5px]'}`}>
             Waiting for the fleet to change shape…
           </li>
         )}

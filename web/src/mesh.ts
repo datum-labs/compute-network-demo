@@ -203,11 +203,20 @@ export function arcPath(a: Region, b: Region): ArcGeometry {
   };
 }
 
+/**
+ * The colour each link state carries. Named rather than literal so the four
+ * signals stay recognisable in either colour scheme: the light-mode values are
+ * darker, because a tint that reads on midnight fjord vanishes on paper.
+ *
+ * These are CSS variable references, so they have to reach the DOM through a
+ * `style` declaration. A presentation attribute such as `stroke="…"` does not
+ * resolve `var()`.
+ */
 export const STATE_COLOR: Record<EdgeState, string> = {
-  up: '#B3D56F',
-  degraded: '#F2C46D',
-  down: '#EF7B6C',
-  pending: '#8FA3B8',
+  up: 'var(--status-up)',
+  degraded: 'var(--status-degraded)',
+  down: 'var(--status-down)',
+  pending: 'var(--status-pending)',
 };
 
 export function formatUptime(seconds: number): string {

@@ -1,10 +1,25 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0c1d31" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fcfdf7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c1d31" />
     <title>Datum Global Mesh</title>
+    <!-- The theme class is applied by ThemeProvider once React mounts, which
+         is a frame or two after the first paint. Settling it here instead keeps
+         a dark-scheme visitor from seeing a white flash on the way in. Mirrors
+         the provider's storage key and its system default. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme = stored && stored !== 'system' ? stored : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+          document.documentElement.style.colorScheme = theme;
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%23B3D56F'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23e6f59e' stroke-opacity='.4' stroke-width='2'/%3E%3C/svg%3E" />
   </head>
   <body>
