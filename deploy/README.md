@@ -72,8 +72,12 @@ kubectl apply -f live/00-serviceaccount.yaml
 datumctl auth update-kubeconfig --kubeconfig ./org.kubeconfig --organization <ORG>
 kubectl --kubeconfig ./org.kubeconfig apply -f live/10-policybinding.yaml
 
-# 3. The key, as a Secret. Create the key from the portal or datumctl and
-#    download the JSON — the private half is only ever returned once.
+# 3. The key, as a Secret. The private half is only ever returned once, in the
+#    response that creates the key, and that response's status.privateKey is
+#    already the whole credentials file. ServiceAccountKey is cluster-scoped
+#    and needs --validate=false (see live/00-serviceaccount.yaml).
+kubectl create --validate=false -f <key manifest> \
+  -o jsonpath='{.status.privateKey}' > ./global-mesh-key.json
 kubectl create secret generic global-mesh-credentials \
   --from-file=credentials.json=./global-mesh-key.json
 

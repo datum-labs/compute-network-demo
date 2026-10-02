@@ -18,9 +18,10 @@
 #   kubectl --kubeconfig ./org.kubeconfig \
 #     get projects.resourcemanager.miloapis.com <PROJECT> -o jsonpath='{.metadata.uid}'
 #
-# Reading the Locations API uses a separate platform-level grant. Without it the
-# demo falls back to its built-in table of city names and coordinates, which
-# covers every launch location, so this binding is the only one required.
+# Reading the Locations API uses a separate platform-level grant: with only this
+# binding the list call returns 403 and the demo falls back to its built-in
+# table of city names and coordinates, which covers every launch location. So
+# this binding is the only one required.
 apiVersion: iam.miloapis.com/v1alpha1
 kind: PolicyBinding
 metadata:
@@ -30,7 +31,8 @@ metadata:
 spec:
   roleRef:
     name: compute.datumapis.com-viewer
-    namespace: datum-cloud
+    # Platform roles live in milo-system, not in your project.
+    namespace: milo-system
   subjects:
     - kind: ServiceAccount
       name: global-mesh

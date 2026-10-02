@@ -110,7 +110,8 @@ Every Instance runs the same static binary, and that binary contains the page.
 1. **Discovery.** Every 5 seconds the Instance lists its workload's Instances
    through the Datum Cloud API, authenticating the way `datumctl login
    --credentials` does. It works out which Instance it is by matching its own
-   network addresses. City names and coordinates come from the Locations API,
+   network addresses. City names and coordinates come from the Locations API
+   when the identity may list it (the compute viewer role alone gets a 403),
    with a built-in table as a fallback. If the API cannot be reached it falls
    back to the `MESH_PEERS` list, and the page shows a "Static peers" marker so
    it never quietly misrepresents where its view came from.
