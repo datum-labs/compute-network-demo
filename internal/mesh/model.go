@@ -91,6 +91,10 @@ type InstanceView struct {
 	// Reporting is false when the serving instance could not collect this
 	// instance's own measurements.
 	Reporting bool `json:"reporting"`
+	// CreatedAt is when the platform created this instance. The fleet driver
+	// elects by it, so every instance in a view has to carry the same measure
+	// of age; the page has no use for it.
+	CreatedAt time.Time `json:"-"`
 }
 
 // EdgeView is directed traffic from one instance to another.
@@ -150,6 +154,16 @@ func InstanceStatus(inst datum.Instance) string {
 	}
 }
 
+// createdAt is an instance's age as the fleet driver's election compares it:
+// when the platform created it, or when it became available on an instance
+// whose creation timestamp discovery could not read.
+func createdAt(inst datum.Instance) time.Time {
+	if !inst.CreatedAt.IsZero() {
+		return inst.CreatedAt
+	}
+	return inst.AvailableAt
+}
+
 // plausibleJoin reports whether the gap between an instance's creation and the
 // moment it became available can be read as the time it took to join.
 func plausibleJoin(created, available time.Time) bool {
@@ -198,6 +212,7 @@ func Assemble(instances []datum.Instance, dir *geo.Directory, self string, repor
 			Lon:         place.Lon,
 			Status:      InstanceStatus(inst),
 			IsSelf:      inst.Name == self,
+			CreatedAt:   createdAt(inst),
 		}
 		if inst.PrivateIP.IsValid() {
 			iv.PrivateIP = inst.PrivateIP.String()

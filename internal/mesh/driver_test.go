@@ -80,46 +80,124 @@ func stableView(self string, names ...string) View {
 	return v
 }
 
-func TestLowestRunningLeadsTheFleet(t *testing.T) {
+// Instance names as the platform builds them: the workload, the placement, the
+// location, and the ordinal within the placement. An extra placement's number
+// therefore lands in the middle of the name, below every letter it is compared
+// against.
+const (
+	dfwInstance      = "global-mesh-dfw-us-central-1-0"
+	dfwExtraInstance = "global-mesh-dfw-2-us-central-1-0"
+	iadInstance      = "global-mesh-iad-us-east-1-0"
+	sjcInstance      = "global-mesh-sjc-us-west-1-0"
+)
+
+// aged stamps creation times onto a view's Instances, so an election has ages
+// to compare. Instances left out keep an unknown age.
+func aged(v View, at map[string]time.Time) View {
+	for i := range v.Instances {
+		if t, ok := at[v.Instances[i].Name]; ok {
+			v.Instances[i].CreatedAt = t
+		}
+	}
+	return v
+}
+
+// stopped marks one Instance as winding down.
+func stopped(v View, name string) View {
+	for i := range v.Instances {
+		if v.Instances[i].Name == name {
+			v.Instances[i].Status = StatusStopping
+		}
+	}
+	return v
+}
+
+func TestOldestRunningLeadsTheFleet(t *testing.T) {
+	t0 := time.Date(2026, 10, 2, 12, 0, 0, 0, time.UTC)
+	hourAgo := t0.Add(-time.Hour)
+	dayAgo := t0.Add(-24 * time.Hour)
+
 	cases := []struct {
 		name string
 		view View
 		want bool
 	}{
 		{
-			name: "lowest name leads",
-			view: stableView("mesh-a-0", "mesh-a-0", "mesh-b-0"),
+			name: "the lowest name does not lead when it is the newest Instance",
+			view: aged(stableView(dfwInstance, dfwInstance, iadInstance), map[string]time.Time{
+				dfwInstance: t0, iadInstance: dayAgo,
+			}),
+		},
+		{
+			name: "the oldest Instance leads",
+			view: aged(stableView(iadInstance, dfwInstance, iadInstance), map[string]time.Time{
+				dfwInstance: t0, iadInstance: dayAgo,
+			}),
 			want: true,
 		},
 		{
-			name: "a lower peer leads instead",
-			view: stableView("mesh-b-0", "mesh-a-0", "mesh-b-0"),
-			want: false,
+			name: "a tie on age falls to the lowest name",
+			view: aged(stableView(dfwInstance, dfwInstance, iadInstance), map[string]time.Time{
+				dfwInstance: dayAgo, iadInstance: dayAgo,
+			}),
+			want: true,
+		},
+		{
+			name: "an Instance of an extra placement does not lead while a base Instance runs",
+			view: aged(stableView(dfwExtraInstance, dfwInstance, dfwExtraInstance), map[string]time.Time{
+				dfwInstance: hourAgo, dfwExtraInstance: dayAgo,
+			}),
+		},
+		{
+			name: "the base Instance leads even when an extra is older",
+			view: aged(stableView(dfwInstance, dfwInstance, dfwExtraInstance), map[string]time.Time{
+				dfwInstance: hourAgo, dfwExtraInstance: dayAgo,
+			}),
+			want: true,
+		},
+		{
+			name: "an extra leads when it is the only Instance left running",
+			view: stopped(aged(stableView(dfwExtraInstance, dfwInstance, dfwExtraInstance), map[string]time.Time{
+				dfwInstance: dayAgo, dfwExtraInstance: t0,
+			}), dfwInstance),
+			want: true,
+		},
+		{
+			name: "leadership passes to the next-oldest when the leader stops",
+			view: stopped(aged(stableView(sjcInstance, dfwInstance, iadInstance, sjcInstance), map[string]time.Time{
+				dfwInstance: dayAgo, iadInstance: t0, sjcInstance: hourAgo,
+			}), dfwInstance),
+			want: true,
+		},
+		{
+			name: "an Instance whose age is unknown yields to one that has an age",
+			view: aged(stableView(dfwInstance, dfwInstance, iadInstance), map[string]time.Time{
+				iadInstance: t0,
+			}),
 		},
 		{
 			name: "sole Instance leads",
-			view: stableView("mesh-a-0", "mesh-a-0"),
+			view: stableView(dfwInstance, dfwInstance),
 			want: true,
 		},
 		{
 			name: "an Instance that has not identified itself never leads",
-			view: stableView("", "mesh-a-0"),
-			want: false,
+			view: stableView("", dfwInstance),
 		},
 		{
-			name: "a lower name that is still starting does not lead",
+			name: "an Instance still starting does not lead, however old",
 			view: func() View {
-				v := stableView("mesh-b-0", "mesh-b-0")
-				v.Instances = append([]InstanceView{{Name: "mesh-a-0", Status: StatusStarting}}, v.Instances...)
+				v := aged(stableView(iadInstance, iadInstance), map[string]time.Time{iadInstance: t0})
+				v.Instances = append([]InstanceView{{Name: dfwInstance, Status: StatusStarting, CreatedAt: dayAgo}}, v.Instances...)
 				return v
 			}(),
 			want: true,
 		},
 		{
-			name: "a lower name that is stopping does not lead",
+			name: "an Instance stopping does not lead, however old",
 			view: func() View {
-				v := stableView("mesh-b-0", "mesh-b-0")
-				v.Instances = append([]InstanceView{{Name: "mesh-a-0", Status: StatusStopping}}, v.Instances...)
+				v := aged(stableView(iadInstance, iadInstance), map[string]time.Time{iadInstance: t0})
+				v.Instances = append([]InstanceView{{Name: dfwInstance, Status: StatusStopping, CreatedAt: dayAgo}}, v.Instances...)
 				return v
 			}(),
 			want: true,
@@ -131,6 +209,61 @@ func TestLowestRunningLeadsTheFleet(t *testing.T) {
 				t.Errorf("leads() = %v, want %v", got, c.want)
 			}
 		})
+	}
+}
+
+// A location whose own name ends in a number must not make every Instance in it
+// look like an extra: only an Instance whose base Instance is in the same fleet
+// is one.
+func TestExtraInstancesComeFromNumberedPlacements(t *testing.T) {
+	v := stableView("", dfwInstance, dfwExtraInstance, "global-mesh-dfw-us-west-2-0")
+	got := extraInstances(v.Instances)
+	if len(got) != 1 || !got[dfwExtraInstance] {
+		t.Fatalf("extras = %+v", got)
+	}
+}
+
+// The bug this guards: scaling Dallas up adds the placement dfw-2, whose
+// Instance name sorts below every Instance already running. Electing by name
+// handed the fleet to that new Instance, which knew nothing of the change that
+// created it and scaled again within seconds.
+func TestScaleUpDoesNotMoveLeadership(t *testing.T) {
+	api := &fakeWorkloads{workload: twoCityWorkload()}
+	now := time.Date(2026, 10, 2, 12, 0, 0, 0, time.UTC)
+	d := newTestDriver(t, api, &now)
+
+	ages := map[string]time.Time{
+		dfwInstance: now.Add(-24 * time.Hour),
+		iadInstance: now.Add(-time.Hour),
+	}
+	d.Tick(context.Background(), aged(stableView(dfwInstance, dfwInstance, iadInstance), ages))
+	if len(api.writes) != 1 || api.writes[0][2].Name != "dfw-2" {
+		t.Fatalf("writes = %+v", api.writes)
+	}
+
+	// The Instance the scale-up asked for arrives, newest of the fleet.
+	now = now.Add(90 * time.Second)
+	ages[dfwExtraInstance] = now
+	grown := aged(stableView(dfwInstance, dfwInstance, dfwExtraInstance, iadInstance), ages)
+
+	d.Tick(context.Background(), grown)
+	if st := d.State(); !st.IsLeader {
+		t.Error("the Instance that scaled the fleet lost the fleet to the Instance it created")
+	}
+	if len(api.writes) != 1 {
+		t.Fatalf("acted inside the interval: %+v", api.writes)
+	}
+
+	// The new Instance runs the same code against the same view, and has none
+	// of the leader's interval or settled state to hold it back.
+	newcomer := &fakeWorkloads{workload: api.workload}
+	fresh := newTestDriver(t, newcomer, &now)
+	fresh.Tick(context.Background(), aged(stableView(dfwExtraInstance, dfwInstance, dfwExtraInstance, iadInstance), ages))
+	if st := fresh.State(); st.IsLeader {
+		t.Error("the Instance the scale-up created claimed the fleet")
+	}
+	if len(newcomer.writes) != 0 {
+		t.Fatalf("a brand-new Instance scaled the fleet again: %+v", newcomer.writes)
 	}
 }
 

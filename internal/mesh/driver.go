@@ -30,8 +30,8 @@ type WorkloadWriter interface {
 // placement is picked up within seconds.
 //
 // Every replica runs this code, so one of them has to be chosen. The choice is
-// made from what discovery already reports — the lowest-named running Instance
-// drives — and is re-made on every tick. Two replicas briefly agreeing they
+// made from what discovery already reports — the oldest running Instance drives
+// — and is re-made on every tick. Two replicas briefly agreeing they
 // both lead is harmless: an action writes a desired shape, and writing the
 // same shape twice is the same as writing it once.
 type Driver struct {
@@ -304,21 +304,105 @@ func (d *Driver) max() int {
 }
 
 // leads reports whether this replica is the one that drives the workload: the
-// lowest-named Instance that discovery currently sees running.
+// oldest running Instance discovery currently sees.
+//
+// Age decides rather than name because the driver grows a city by adding a
+// numbered placement, and the Instance that placement brings up can sort below
+// every Instance already running: dfw-2 sorts before dfw. Electing by name
+// handed the fleet to the Instance the last change had just created, which
+// carried none of the driver's state and so immediately made another change.
+// The oldest Instance is the one that has been driving longest, so its
+// interval and its pending scale-up are the ones worth keeping.
 func leads(v View) bool {
-	if v.Self == "" {
-		return false
-	}
-	lowest := ""
-	for _, inst := range v.Instances {
+	return v.Self != "" && elect(v.Instances) == v.Self
+}
+
+// elect names the Instance that drives the fleet, or "" when none of them can.
+func elect(instances []InstanceView) string {
+	extras := extraInstances(instances)
+	var leader candidate
+	for _, inst := range instances {
+		// Only an Instance that is answering can drive: one still starting has
+		// no view of the fleet, and one stopping is about to lose it.
 		if inst.Status != StatusRunning {
 			continue
 		}
-		if lowest == "" || inst.Name < lowest {
-			lowest = inst.Name
+		c := candidate{name: inst.Name, base: !extras[inst.Name], at: inst.CreatedAt}
+		if leader.name == "" || c.outranks(leader) {
+			leader = c
 		}
 	}
-	return lowest != "" && lowest == v.Self
+	return leader.name
+}
+
+// candidate is one running Instance as the election ranks it.
+type candidate struct {
+	name string
+	// base is false for an Instance an extra placement brought up.
+	base bool
+	at   time.Time
+}
+
+// outranks orders two candidates. An Instance of a base placement comes first,
+// since the driver may take an extra's placement back out on the next
+// scale-down and leadership would go with it. Then the Instance whose age is
+// known at all, then the older one, and finally the lower name, so every
+// replica reaches the same answer from the same view.
+func (c candidate) outranks(o candidate) bool {
+	switch {
+	case c.base != o.base:
+		return c.base
+	case c.at.IsZero() != o.at.IsZero():
+		return !c.at.IsZero()
+	case !c.at.Equal(o.at):
+		return c.at.Before(o.at)
+	default:
+		return c.name < o.name
+	}
+}
+
+// extraInstances names the running Instances in a view that an extra placement
+// brought up, and leaves out every Instance that is not running: a fleet's
+// leader has to be answering.
+//
+// An Instance's name carries its placement's name, its location and its
+// ordinal, so an extra's Instance is the base's Instance name with the extra's
+// number inserted in the middle. An extra is recognised by finding the base's
+// Instance in the same view rather than by spotting any number in the name,
+// which would also catch the number a location's own name ends in.
+func extraInstances(instances []InstanceView) map[string]bool {
+	running := make(map[string]bool, len(instances))
+	for _, inst := range instances {
+		if inst.Status == StatusRunning {
+			running[inst.Name] = true
+		}
+	}
+	extras := make(map[string]bool, len(instances))
+	for name := range running {
+		for _, base := range dropExtraNumber(name) {
+			if running[base] {
+				extras[name] = true
+				break
+			}
+		}
+	}
+	return extras
+}
+
+// dropExtraNumber returns the Instance names a name would have if one of its
+// numeric segments were an extra placement's number. Extras count from two, as
+// splitExtra reads them back.
+func dropExtraNumber(name string) []string {
+	parts := strings.Split(name, "-")
+	var out []string
+	for i, p := range parts {
+		if n, err := strconv.Atoi(p); err != nil || n < 2 {
+			continue
+		}
+		rest := append([]string{}, parts[:i]...)
+		out = append(out, strings.Join(append(rest, parts[i+1:]...), "-"))
+	}
+	return out
 }
 
 // fleetStable reports whether the fleet is quiet enough to change: every

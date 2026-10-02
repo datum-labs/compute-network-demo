@@ -386,11 +386,12 @@ func (s *Simulator) instanceViews(t time.Time) []InstanceView {
 	for _, inst := range instances {
 		place, _ := s.Directory.Lookup(inst.Location)
 		out = append(out, InstanceView{
-			Name:     inst.Name,
-			Location: inst.Location,
-			City:     place.City,
-			Status:   InstanceStatus(inst),
-			JoinMs:   inst.JoinMs,
+			Name:      inst.Name,
+			Location:  inst.Location,
+			City:      place.City,
+			Status:    InstanceStatus(inst),
+			JoinMs:    inst.JoinMs,
+			CreatedAt: createdAt(inst),
 		})
 	}
 	return out
