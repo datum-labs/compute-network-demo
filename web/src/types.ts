@@ -85,6 +85,30 @@ export interface MeshView {
     avgRttMs: number;
   };
   notice?: string;
+  /** Present only when the opt-in fleet driver is on. The page ignores it. */
+  driver?: DriverState;
+}
+
+/**
+ * The opt-in fleet driver, which lets one replica scale the workload it belongs
+ * to so the activity feed has real scaling decisions in it.
+ */
+export interface DriverState {
+  enabled: boolean;
+  isLeader: boolean;
+  lastAction?: string;
+  lastActionAt?: string;
+  backoffUntil?: string;
+  cities?: DriverCity[];
+  pending?: { city: string; placement: string; since: string };
+}
+
+export interface DriverCity {
+  name: string;
+  /** The city's desired size: its base placement plus its extras. */
+  instances: number;
+  extras: number;
+  ready: boolean;
 }
 
 /** A city on the map: every instance of the workload in one location. */

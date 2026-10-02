@@ -101,11 +101,11 @@ func newLive(workload string, port int, dir *geo.Directory) (*mesh.Live, error) 
 	credsPath := env("DATUM_CREDENTIALS_FILE", "/etc/datum/credentials.json")
 	creds, credsErr := auth.LoadCredentials(credsPath)
 	project := os.Getenv("DATUM_PROJECT")
+	// No defaults: the endpoints differ per environment, and guessing one
+	// would send a service-account assertion to the wrong place.
+	apiURL, authURL := os.Getenv("DATUM_API_URL"), os.Getenv("DATUM_AUTH_URL")
 	switch {
 	case credsErr == nil && project != "":
-		// No defaults: the endpoints differ per environment, and guessing one
-		// would send a service-account assertion to the wrong place.
-		apiURL, authURL := os.Getenv("DATUM_API_URL"), os.Getenv("DATUM_AUTH_URL")
 		if apiURL == "" || authURL == "" {
 			return nil, errors.New("DATUM_API_URL and DATUM_AUTH_URL are required to discover instances through the Datum Cloud API (or set MESH_PEERS, or DEMO_MODE=simulate)")
 		}
@@ -125,7 +125,46 @@ func newLive(workload string, port int, dir *geo.Directory) (*mesh.Live, error) 
 	default:
 		slog.Info("Datum Cloud API discovery unavailable, using MESH_PEERS", "reason", reason(credsErr, project), "peers", len(staticPeers))
 	}
+
+	// The driver is opt-in and holds its own identity, so the account the page
+	// reads with never needs write access to the workload.
+	if env("MESH_DRIVER", "off") == "on" {
+		live.Driver = newDriver(workload, project, apiURL, authURL)
+	}
 	return live, nil
+}
+
+// newDriver builds the fleet driver, or returns nil after saying why it cannot.
+// A missing key leaves the demo read-only rather than failing to start: the
+// page is the point, and the driver only makes it livelier.
+func newDriver(workload, project, apiURL, authURL string) *mesh.Driver {
+	path := env("MESH_DRIVER_CREDENTIALS_FILE", "/etc/datum-driver/credentials.json")
+	creds, err := auth.LoadCredentials(path)
+	switch {
+	case err != nil:
+		slog.Error("MESH_DRIVER is on but the driver's credentials are unusable; running read-only", "file", path, "error", err)
+		return nil
+	case project == "" || apiURL == "" || authURL == "":
+		slog.Error("MESH_DRIVER is on but DATUM_PROJECT, DATUM_API_URL and DATUM_AUTH_URL are not all set; running read-only")
+		return nil
+	}
+
+	httpClient := &http.Client{Timeout: 15 * time.Second}
+	d := &mesh.Driver{
+		API: &datum.Client{
+			APIURL:  apiURL,
+			Project: project,
+			Tokens:  auth.NewTokenSource(creds, authURL, httpClient),
+			HTTP:    httpClient,
+		},
+		Workload:      workload,
+		MaxPerCity:    envInt("MESH_DRIVER_MAX", 3),
+		Interval:      envDuration("MESH_DRIVER_INTERVAL", 4*time.Minute),
+		SettleTimeout: envDuration("MESH_DRIVER_SETTLE_TIMEOUT", 6*time.Minute),
+	}
+	slog.Info("fleet driver enabled", "workload", workload, "maxPerCity", d.MaxPerCity,
+		"interval", d.Interval, "settleTimeout", d.SettleTimeout, "identity", creds.ClientEmail)
+	return d
 }
 
 func reason(credsErr error, project string) string {

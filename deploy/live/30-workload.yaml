@@ -69,9 +69,31 @@ spec:
             # on the API alone.
             - name: MESH_PEERS
               value: ""
+            # Optional: let one replica drive this workload's own scaling, so
+            # the page narrates real scale-ups and scale-downs instead of a
+            # fleet that never changes. The driver holds a SECOND identity,
+            # which needs the a role that can patch Workloads (staging currently only allows the project editor role; narrow it when Milo permits a compute-scoped role) role on this
+            # project, so the account above stays read-only. Uncomment these
+            # together with the volumeAttachment and the volume below, and
+            # create the Secret from that identity's key:
+            #   kubectl create secret generic global-mesh-driver-credentials \
+            #     --from-file=credentials.json=./global-mesh-driver-key.json
+            # - name: MESH_DRIVER
+            #   value: "on"
+            # - name: MESH_DRIVER_CREDENTIALS_FILE
+            #   value: /etc/datum-driver/credentials.json
+            # Per city: at most this many Instances, at least one.
+            # - name: MESH_DRIVER_MAX
+            #   value: "3"
+            # - name: MESH_DRIVER_INTERVAL
+            #   value: 4m
+            # - name: MESH_DRIVER_SETTLE_TIMEOUT
+            #   value: 6m
             volumeAttachments:
             - name: datum-credentials
               mountPath: /etc/datum
+            # - name: datum-driver
+            #   mountPath: /etc/datum-driver
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
@@ -84,3 +106,9 @@ spec:
           secretName: global-mesh-credentials
           # The image runs as uid 65532, which must be able to read the key.
           defaultMode: 0444
+      # The driver's own key. Leave this commented out unless MESH_DRIVER is
+      # on: a volume whose Secret does not exist holds the Instance back.
+      # - name: datum-driver
+      #   secret:
+      #     secretName: global-mesh-driver-credentials
+      #     defaultMode: 0444

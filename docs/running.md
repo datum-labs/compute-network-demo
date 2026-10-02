@@ -56,10 +56,68 @@ See [`deploy/README.md`](../deploy/README.md).
 | `DATUM_API_URL` | | Live: Datum Cloud API endpoint, required |
 | `DATUM_AUTH_URL` | | Live: auth server, for OIDC discovery, required |
 | `MESH_PEERS` | | Live: fallback peer list, `us-central-1=fd20:…,us-east-1=fd20:…` |
+| `MESH_DRIVER` | `off` | Live: `on` lets one replica scale this workload (see below) |
+| `MESH_DRIVER_CREDENTIALS_FILE` | `/etc/datum-driver/credentials.json` | Live: the driver's own service-account key |
+| `MESH_DRIVER_MAX` | `3` | Live: most Instances the driver will run in one city |
+| `MESH_DRIVER_INTERVAL` | `4m` | Live: shortest gap between two scaling changes |
+| `MESH_DRIVER_SETTLE_TIMEOUT` | `6m` | Live: how long a scale-up has to join the mesh before it is undone |
 | `MESH_SELF` | | Override this Instance's name, normally detected from its address |
 | `MESH_PORT` | `8080` | Port peers listen on |
 | `MESH_PING_INTERVAL` | `2s` | How often each peer is messaged |
 | `LISTEN_ADDR` | `[::]:8080` | Listen address, dual-stack |
+
+## Making a live fleet scale itself
+
+A real workload sitting at one Instance per city has nothing for the narration
+to say. With `MESH_DRIVER=on`, exactly one replica of the workload changes the
+workload's own shape through the Datum Cloud API, slowly, so the activity feed
+carries real scale-ups, real Instances joining the mesh, and real drains.
+
+It is off by default, and it is the only thing in the demo that writes.
+
+- **Which replica drives.** The lowest-named Instance that discovery currently
+  sees running. That is decided again on every discovery tick, from the fleet
+  the page is already looking at, so no lease or external coordination is
+  needed. Two replicas briefly agreeing they both drive is harmless: every
+  action writes a desired shape, and writing it twice is the same as writing it
+  once. A replica that loses a race gets a `409` and waits for its next tick.
+- **How it scales.** By adding and removing placements, not by moving an
+  existing placement's `minReplicas`. A new placement named `<base>-2` copies
+  the base placement's `locationSelector` and asks for one Instance, so the city
+  grows where it already is; scaling down removes the highest-numbered extra.
+  Base placements are never removed, and a city whose base placement is not
+  available is left alone entirely.
+- **How slowly.** One change at a time, no sooner than `MESH_DRIVER_INTERVAL`
+  after the last one, and only when the fleet is settled: every Instance
+  running, none draining, and every link up. After a scale-up nothing else
+  happens until the new Instance is in the mesh and reachable by every peer. If
+  that has not happened within `MESH_DRIVER_SETTLE_TIMEOUT` the placement is
+  removed again and the driver backs off for three intervals.
+- **What it does.** A gentle staircase: one city up, then another city up, then
+  each back down, so no two cities ever move together and the fleet returns to
+  its baseline between cycles. Each cycle starts with a different city. A city
+  never drops below one Instance or rises above `MESH_DRIVER_MAX`.
+
+### The driver's own identity
+
+The driver authenticates as a **second** service account, read from
+`MESH_DRIVER_CREDENTIALS_FILE`, so the account the page discovers with stays
+read-only. Set it up the way `deploy/live/00-serviceaccount.yaml` and
+`deploy/live/10-policybinding.yaml` do for the read-only account, with two
+differences: a different name, and the `a role that can patch Workloads (staging currently only allows the project editor role; narrow it when Milo permits a compute-scoped role)` role in
+place of `compute.datumapis.com-viewer`. Then mount its key as a second Secret
+and uncomment the `MESH_DRIVER` block in `deploy/live/30-workload.yaml`.
+
+If `MESH_DRIVER=on` and that file is missing or unreadable, the demo logs one
+error and runs read-only rather than refusing to start — the page is the point,
+and the driver only makes it livelier.
+
+Every decision is logged at INFO with the city, the action, the placement and
+why, and the current state is on `/api/mesh` under `driver`:
+
+```sh
+curl -s https://<hostname>/api/mesh | jq .driver
+```
 
 ## The guided walkthrough
 

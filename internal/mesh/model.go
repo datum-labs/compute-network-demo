@@ -132,6 +132,8 @@ type View struct {
 	Totals   Totals     `json:"totals"`
 	// Notice is a plain-language explanation shown when the view is partial.
 	Notice string `json:"notice,omitempty"`
+	// Driver reports the opt-in fleet driver, and is absent unless it is on.
+	Driver *DriverState `json:"driver,omitempty"`
 }
 
 // InstanceStatus is where an Instance is in its life, as the page shows it.

@@ -64,6 +64,10 @@ type Live struct {
 	// SelfName, when set, names this instance outright instead of working it
 	// out from addresses. Useful when several instances share a host.
 	SelfName string
+	// Driver, when set, lets one replica of the fleet scale the workload it
+	// belongs to. It is opt-in and uses its own credentials, so the read-only
+	// identity the page runs under stays read-only.
+	Driver *Driver
 
 	startedAt time.Time
 	client    *http.Client
@@ -107,6 +111,18 @@ func (l *Live) discoverLoop(ctx context.Context) {
 	defer ticker.Stop()
 	for {
 		l.discover(ctx)
+		// The driver re-runs its election on every discovery tick, and reads
+		// the assembled view because its safety checks are about reachability
+		// rather than about what the API last reported. It runs alongside
+		// discovery rather than inside it, so an API call of its own never
+		// delays the next look at the fleet.
+		if l.Driver != nil {
+			go func() {
+				tick, cancel := context.WithTimeout(ctx, driverTickTimeout)
+				defer cancel()
+				l.Driver.Tick(tick, l.View(tick))
+			}()
+		}
 		select {
 		case <-ctx.Done():
 			return
@@ -114,6 +130,10 @@ func (l *Live) discoverLoop(ctx context.Context) {
 		}
 	}
 }
+
+// driverTickTimeout bounds one driver tick: a read, a decision and at most one
+// write.
+const driverTickTimeout = 30 * time.Second
 
 func (l *Live) discover(ctx context.Context) {
 	timeout := 10 * time.Second
@@ -268,6 +288,10 @@ func (l *Live) View(ctx context.Context) View {
 	v.Discovery = discovery
 	v.Project = l.Project
 	v.Workload = l.Workload
+	if l.Driver != nil {
+		state := l.Driver.State()
+		v.Driver = &state
+	}
 	switch {
 	case !discovered && discoverErr != nil:
 		v.Notice = "Connecting to the Datum Cloud API to discover instances…"

@@ -1,0 +1,204 @@
+{
+    "apiVersion": "compute.datumapis.com/v1alpha",
+    "kind": "Workload",
+    "metadata": {
+        "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"compute.datumapis.com/v1alpha\",\"kind\":\"Workload\",\"metadata\":{\"annotations\":{},\"name\":\"mesh-demo-real-mesh\",\"namespace\":\"default\"},\"spec\":{\"placements\":[{\"locationSelector\":{\"matchLabels\":{\"topology.datum.net/city-code\":\"DFW\"}},\"name\":\"dfw\",\"scaleSettings\":{\"minReplicas\":1}},{\"locationSelector\":{\"matchLabels\":{\"topology.datum.net/city-code\":\"IAD\"}},\"name\":\"iad\",\"scaleSettings\":{\"minReplicas\":1}}],\"template\":{\"spec\":{\"networkInterfaces\":[{\"ipFamilies\":[\"IPv6\"],\"name\":\"eth0\",\"network\":{\"name\":\"xregion-net\"}}],\"runtime\":{\"class\":\"general-purpose\",\"resources\":{\"instanceType\":\"datumcloud/d1-standard-2\"},\"sandbox\":{\"containers\":[{\"env\":[{\"name\":\"DATUM_PROJECT\",\"value\":\"datum-cloud\"},{\"name\":\"DATUM_WORKLOAD\",\"value\":\"mesh-demo-real-mesh\"},{\"name\":\"DATUM_CREDENTIALS_FILE\",\"value\":\"/etc/datum/credentials.json\"},{\"name\":\"DATUM_API_URL\",\"value\":\"https://api.staging.env.datum.net\"},{\"name\":\"DATUM_AUTH_URL\",\"value\":\"https://auth.staging.env.datum.net\"},{\"name\":\"MESH_PEERS\",\"value\":\"\"}],\"image\":\"ghcr.io/datum-labs/compute-network-demo@sha256:996438156d3aa86d1bad8abcbfe7a2ebdb18cdd0a72ac79ce15bf8cd0b2fc1a4\",\"name\":\"mesh\",\"ports\":[{\"name\":\"http\",\"port\":8080,\"protocol\":\"TCP\"}],\"securityContext\":{\"allowPrivilegeEscalation\":false,\"capabilities\":{\"drop\":[\"ALL\"]},\"seccompProfile\":{\"type\":\"RuntimeDefault\"}},\"volumeAttachments\":[{\"mountPath\":\"/etc/datum\",\"name\":\"datum-credentials\"}]}]}},\"volumes\":[{\"name\":\"datum-credentials\",\"secret\":{\"defaultMode\":292,\"secretName\":\"mesh-demo-credentials\"}}]}}}}\n"
+        },
+        "creationTimestamp": "2026-10-02T01:04:54Z",
+        "finalizers": [
+            "compute.datumapis.com/workload-controller"
+        ],
+        "generation": 5,
+        "name": "mesh-demo-real-mesh",
+        "namespace": "default",
+        "resourceVersion": "1714423968",
+        "uid": "f65e09ef-6d1c-4278-a481-924bb00aa52f"
+    },
+    "spec": {
+        "placements": [
+            {
+                "locationSelector": {
+                    "matchLabels": {
+                        "topology.datum.net/city-code": "DFW"
+                    }
+                },
+                "name": "dfw",
+                "scaleSettings": {
+                    "instanceManagementPolicy": "OrderedReady",
+                    "minReplicas": 1
+                }
+            },
+            {
+                "locationSelector": {
+                    "matchLabels": {
+                        "topology.datum.net/city-code": "IAD"
+                    }
+                },
+                "name": "iad",
+                "scaleSettings": {
+                    "instanceManagementPolicy": "OrderedReady",
+                    "minReplicas": 1
+                }
+            }
+        ],
+        "template": {
+            "metadata": {},
+            "spec": {
+                "networkInterfaces": [
+                    {
+                        "ipFamilies": [
+                            "IPv6"
+                        ],
+                        "name": "eth0",
+                        "network": {
+                            "name": "xregion-net"
+                        },
+                        "reclaimPolicy": "Delete"
+                    }
+                ],
+                "runtime": {
+                    "class": "general-purpose",
+                    "resources": {
+                        "instanceType": "datumcloud/d1-standard-2"
+                    },
+                    "sandbox": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "DATUM_PROJECT",
+                                        "value": "datum-cloud"
+                                    },
+                                    {
+                                        "name": "DATUM_WORKLOAD",
+                                        "value": "mesh-demo-real-mesh"
+                                    },
+                                    {
+                                        "name": "DATUM_CREDENTIALS_FILE",
+                                        "value": "/etc/datum/credentials.json"
+                                    },
+                                    {
+                                        "name": "DATUM_API_URL",
+                                        "value": "https://api.staging.env.datum.net"
+                                    },
+                                    {
+                                        "name": "DATUM_AUTH_URL",
+                                        "value": "https://auth.staging.env.datum.net"
+                                    },
+                                    {
+                                        "name": "MESH_PEERS"
+                                    },
+                                    {
+                                        "name": "MESH_RESTART_PROOF",
+                                        "value": "140603"
+                                    }
+                                ],
+                                "image": "ghcr.io/datum-labs/compute-network-demo@sha256:ec418163f9d3b945a11a161f1a4af4ba3bffc5249cc1c355a9dbe6a46e7cb851",
+                                "name": "mesh",
+                                "ports": [
+                                    {
+                                        "name": "http",
+                                        "port": 8080,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "securityContext": {
+                                    "allowPrivilegeEscalation": false,
+                                    "capabilities": {
+                                        "drop": [
+                                            "ALL"
+                                        ]
+                                    },
+                                    "seccompProfile": {
+                                        "type": "RuntimeDefault"
+                                    }
+                                },
+                                "volumeAttachments": [
+                                    {
+                                        "mountPath": "/etc/datum",
+                                        "name": "datum-credentials"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "volumes": [
+                    {
+                        "name": "datum-credentials",
+                        "secret": {
+                            "defaultMode": 292,
+                            "secretName": "mesh-demo-credentials"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "status": {
+        "conditions": [
+            {
+                "lastTransitionTime": "2026-10-02T14:06:12Z",
+                "message": "At least one available placement was found",
+                "observedGeneration": 5,
+                "reason": "AvailablePlacementFound",
+                "status": "True",
+                "type": "Available"
+            }
+        ],
+        "currentReplicas": 2,
+        "deployments": 2,
+        "desiredReplicas": 2,
+        "observedGeneration": 5,
+        "placements": [
+            {
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2026-10-02T14:06:13Z",
+                        "message": "At least one available deployment was found",
+                        "reason": "AvailableDeploymentFound",
+                        "status": "True",
+                        "type": "Available"
+                    }
+                ],
+                "currentReplicas": 1,
+                "desiredReplicas": 1,
+                "locations": [
+                    {
+                        "name": "us-central-1"
+                    }
+                ],
+                "name": "dfw",
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updatedReplicas": 1
+            },
+            {
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2026-10-02T14:06:12Z",
+                        "message": "At least one available deployment was found",
+                        "reason": "AvailableDeploymentFound",
+                        "status": "True",
+                        "type": "Available"
+                    }
+                ],
+                "currentReplicas": 1,
+                "desiredReplicas": 1,
+                "locations": [
+                    {
+                        "name": "us-east-1"
+                    }
+                ],
+                "name": "iad",
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updatedReplicas": 1
+            }
+        ],
+        "readyReplicas": 2,
+        "replicas": 2,
+        "updatedReplicas": 2
+    }
+}
