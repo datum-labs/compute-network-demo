@@ -66,6 +66,12 @@ func (a *activityLog) observe(instances []InstanceView, now time.Time) {
 	city := map[string]string{}
 	for _, inst := range instances {
 		status[inst.Name] = inst.Status
+		// An Instance whose join is still being timed has not finished joining
+		// the mesh. Holding it at starting keeps its ready event — and the join
+		// time that event carries — for the moment the measurement lands.
+		if inst.JoinPending && inst.Status == StatusRunning {
+			status[inst.Name] = StatusStarting
+		}
 		city[inst.Location] = inst.City
 		// An Instance on its way out no longer counts towards the workload's
 		// size; the scale-down is the news, not its last few seconds.
@@ -93,15 +99,18 @@ func (a *activityLog) observe(instances []InstanceView, now time.Time) {
 	}
 	for _, name := range names {
 		inst := byName[name]
+		// The state the log narrates, which lags the Instance's own while its
+		// join is being measured.
+		state := status[name]
 		was, known := a.seen[name]
 		switch {
-		case !known && inst.Status == StatusStarting:
+		case !known && state == StatusStarting:
 			batch = append(batch, Activity{Type: ActivityStarting, Instance: name, Location: inst.Location, City: inst.City})
 		// An Instance that was already up by the time discovery next looked
 		// still joined the mesh; it just did it between two observations.
-		case was != StatusRunning && inst.Status == StatusRunning:
+		case was != StatusRunning && state == StatusRunning:
 			batch = append(batch, Activity{Type: ActivityReady, Instance: name, Location: inst.Location, City: inst.City, JoinMs: inst.JoinMs})
-		case known && was != StatusStopping && inst.Status == StatusStopping:
+		case known && was != StatusStopping && state == StatusStopping:
 			batch = append(batch, Activity{Type: ActivityStopping, Instance: name, Location: inst.Location, City: inst.City})
 		}
 	}

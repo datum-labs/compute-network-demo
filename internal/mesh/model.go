@@ -80,8 +80,14 @@ type InstanceView struct {
 	PeersReachable int     `json:"peersReachable"`
 	PeersTotal     int     `json:"peersTotal"`
 	// JoinMs is how long this instance took to become reachable by every peer
-	// over the private network once it was running.
+	// over the private network once it was running. It is omitted when neither
+	// a measurement nor a plausible derived value is available, which the page
+	// reads as "joined" without a duration.
 	JoinMs float64 `json:"joinMs,omitempty"`
+	// JoinPending is true while the fleet is still timing this instance's join.
+	// The page has no use for it; the activity log holds the instance's ready
+	// event until the measurement lands so the event carries it.
+	JoinPending bool `json:"-"`
 	// Reporting is false when the serving instance could not collect this
 	// instance's own measurements.
 	Reporting bool `json:"reporting"`
@@ -142,6 +148,15 @@ func InstanceStatus(inst datum.Instance) string {
 	}
 }
 
+// plausibleJoin reports whether the gap between an instance's creation and the
+// moment it became available can be read as the time it took to join.
+func plausibleJoin(created, available time.Time) bool {
+	if created.IsZero() || available.IsZero() || !available.After(created) {
+		return false
+	}
+	return available.Sub(created) < maxFallbackJoin
+}
+
 // EdgeState classifies a peer's recent reachability.
 func EdgeState(s PeerStats) string {
 	switch {
@@ -187,11 +202,15 @@ func Assemble(instances []datum.Instance, dir *geo.Directory, self string, repor
 		}
 		// Discovery only sees when an instance became available, which covers
 		// booting as well as joining the network. A fleet that measures the
-		// join itself reports it outright.
+		// join itself reports it outright; otherwise the gap between creation
+		// and availability stands in, but only while it is short enough to be
+		// a join at all. The platform updates an instance in place without
+		// touching its creation timestamp, so that gap grows to days for an
+		// instance that rejoined the network in seconds.
 		switch {
 		case inst.JoinMs > 0:
 			iv.JoinMs = inst.JoinMs
-		case !inst.AvailableAt.IsZero() && !inst.CreatedAt.IsZero() && inst.AvailableAt.After(inst.CreatedAt):
+		case plausibleJoin(inst.CreatedAt, inst.AvailableAt):
 			iv.JoinMs = float64(inst.AvailableAt.Sub(inst.CreatedAt).Milliseconds())
 		}
 		started := inst.AvailableAt

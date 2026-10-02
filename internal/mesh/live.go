@@ -80,6 +80,7 @@ type Live struct {
 	cached    View
 	cachedAt  time.Time
 	activity  *activityLog
+	joins     *joinTracker
 	fetchPeer func(ctx context.Context, inst datum.Instance) (*LocalReport, error)
 }
 
@@ -252,6 +253,12 @@ func (l *Live) View(ctx context.Context) View {
 	wg.Wait()
 
 	v := Assemble(instances, l.Directory, self, reports, time.Now())
+	// The join time comes from the fleet's own observations, so it is settled
+	// before the activity log decides an Instance has joined the mesh.
+	if l.joins == nil {
+		l.joins = newJoinTracker()
+	}
+	l.joins.observe(&v, instances, v.GeneratedAt)
 	if l.activity == nil {
 		l.activity = newActivityLog()
 	}
