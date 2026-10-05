@@ -5,26 +5,38 @@ import type { EdgeState, IntraLink, Link, MeshView, Region } from './types';
 export const MAP_WIDTH = 1038;
 export const MAP_HEIGHT = 591;
 
-// Calibrated to the dotted world map, which spans 60°S to 75°N.
-const projection = geoMercator().fitExtent(
-  [
-    [0, 0],
-    [MAP_WIDTH, MAP_HEIGHT],
-  ],
-  {
-    type: 'Feature',
-    geometry: {
-      type: 'MultiPoint',
-      coordinates: [
-        [-180, -60],
-        [180, 75],
-      ],
-    },
-    properties: null,
-  }
-);
+// Dot centers in world-map-dots.svg, keyed by Location name, for every
+// Location in the Locations API (locations.miloapis.com). The map is
+// hand-drawn art, so a projection lands some coastal cities in the ocean;
+// pinning each known Location to a dot keeps it on land. Re-pick these if
+// world-map-dots.svg changes.
+const LOCATION_DOTS: Record<string, [number, number]> = {
+  'ae-north-1': [661.722, 320.075], // Dubai
+  'au-east-1': [953.38, 503.395], // Sydney
+  'br-east-1': [345.071, 461.735], // São Paulo
+  'ca-east-1': [253.409, 236.739], // Toronto
+  'cl-central-1': [286.743, 495.055], // Santiago
+  'de-central-1': [528.397, 211.743], // Frankfurt
+  'gb-south-1': [486.735, 203.411], // London
+  'in-west-1': [728.392, 328.403], // Mumbai
+  'jp-east-1': [911.716, 253.407], // Tokyo
+  'nl-west-1': [520.063, 203.411], // Amsterdam
+  'sg-central-1': [811.722, 386.731], // Singapore
+  'us-central-1': [203.413, 286.735], // Dallas
+  'us-east-1': [261.739, 261.739], // Ashburn
+  'us-east-2': [270.077, 253.407], // New York
+  'us-west-1': [136.749, 253.407], // San Jose
+  'za-central-1': [578.394, 470.063], // Johannesburg
+};
 
-export function project(lat: number, lon: number): [number, number] {
+// Fallback for Locations without a pinned dot. The map is roughly Mercator but
+// doesn't span a full 360° of longitude, so it can't be fit from bounds; these
+// values were fitted against Natural Earth coastlines.
+const projection = geoMercator().scale(174.5).translate([496.5, 389.5]);
+
+export function project(lat: number, lon: number, location?: string): [number, number] {
+  const dot = location ? LOCATION_DOTS[location] : undefined;
+  if (dot) return dot;
   return projection([lon, lat]) ?? [MAP_WIDTH / 2, MAP_HEIGHT / 2];
 }
 
@@ -35,7 +47,7 @@ export function buildRegions(view: MeshView | null): Region[] {
     const key = inst.location || inst.name;
     let region = byLocation.get(key);
     if (!region) {
-      const [x, y] = project(inst.lat, inst.lon);
+      const [x, y] = project(inst.lat, inst.lon, inst.location);
       region = {
         location: key,
         city: inst.city || key,
