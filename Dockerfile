@@ -9,7 +9,7 @@
 ARG RUNTIME_BASE=gcr.io/distroless/static-debian12:nonroot
 
 # Build the page. It is written into internal/site/dist for the Go embed.
-FROM --platform=$BUILDPLATFORM node:22-alpine AS web
+FROM --platform=$BUILDPLATFORM node:26-alpine AS web
 WORKDIR /src/web
 COPY web/package.json web/package-lock.json web/.npmrc ./
 RUN npm ci --no-audit --no-fund
