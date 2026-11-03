@@ -18,7 +18,7 @@ COPY internal/site/dist/.keep /src/internal/site/dist/.keep
 RUN npm run build
 
 # Build one static binary with the page embedded.
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 ARG TARGETOS
 ARG TARGETARCH
 ARG BUILDMODE=exe

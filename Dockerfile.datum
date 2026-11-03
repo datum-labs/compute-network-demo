@@ -24,7 +24,7 @@ RUN npm run build
 
 # Build one static binary with the page embedded. The binary is CGO-free and
 # statically linked, so it needs no loader or shared libraries at runtime.
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
